@@ -36,26 +36,31 @@ for p in range(2):
     f_glads_present = np.load(f'../../issm/{present}/glads/ff.npy').mean(axis=1)
     
     is_iceflow = False
-    # try:
+    try:
         # C_glads = np.load(f'../../issm/{basin}/issm/solutions/friction_coefficient_glads_nonlinear.npy').squeeze()
         # C_RF = np.load(f'../../issm/{basin}/issm/solutions/friction_coefficient_RF_nonlinear.npy').squeeze()
 
-        # u_glads_glads = np.load(f'../../issm/{basin}/issm/solutions/u_glads_glads_nonlinear.npy').squeeze()
-        # u_rf_rf = np.load(f'../../issm/{basin}/issm/solutions/u_rf_rf_nonlinear.npy').squeeze()
-        # u_glads_rf = np.load(f'../../issm/{basin}/issm/solutions/u_glads_rf_nonlinear.npy').squeeze()
+        u_glads_present = np.load(f'../../issm/{basin}/issm/solutions/u_glads_present.npy').squeeze()
+        u_rf_present = np.load(f'../../issm/{basin}/issm/solutions/u_rf_present.npy').squeeze()
+        u_cv_present = np.load(f'../../issm/{basin}/issm/solutions/u_cv_present.npy').squeeze()
+        u_rf_future = np.load(f'../../issm/{basin}/issm/solutions/u_rf_future.npy').squeeze()
+
+        # u_glads_glads_present = np.load(f'../../issm/{basin}/issm/solutions/u_glads_glads_nonlinear.npy').squeeze()
+        # u_rf_rf_present = np.load(f'../../issm/{basin}/issm/solutions/u_rf_rf_nonlinear.npy').squeeze()
+        # u_glads_rf_present = np.load(f'../../issm/{basin}/issm/solutions/u_glads_rf_nonlinear.npy').squeeze()
         # u_glads_cv = np.load(f'../../issm/{basin}/issm/solutions/u_glads_cv_nonlinear.npy').squeeze()
         # u_rf_glads = np.load(f'../../issm/{basin}/issm/solutions/u_rf_glads_nonlinear.npy').squeeze()
         # u_glads_poc = np.load(f'../../issm/{basin}/issm/solutions/u_glads_poc_nonlinear.npy').squeeze()
         # u_rf_poc = np.load(f'../../issm/{basin}/issm/solutions/u_rf_poc_nonlinear.npy').squeeze()
         # u_poc = np.load(f'../../issm/{basin}/issm/solutions/u_poc_nonlinear.npy').squeeze()
 
-    #     vx = np.load(f'../../issm/{basin}/data/geom/vx.npy')
-    #     vy = np.load(f'../../issm/{basin}/data/geom/vy.npy')
-    #     vv = np.sqrt(vx**2 + vy**2)
-    #     vv[vv<0.1] = -999
-    #     is_iceflow = True
-    # except:
-    #     is_iceflow = False
+        # vx = np.load(f'../../issm/{basin}/data/geom/vx.npy')
+        # vy = np.load(f'../../issm/{basin}/data/geom/vy.npy')
+        # vv = np.sqrt(vx**2 + vy**2)
+        # vv[vv<0.1] = -999
+        is_iceflow = True
+    except:
+        is_iceflow = False
 
     mesh = np.load(f'../../issm/{basin}/data/geom/mesh.npy', allow_pickle=True)
     levelset = np.load(f'../../issm/{present}/data/geom/ocean_levelset.npy')
@@ -81,19 +86,27 @@ for p in range(2):
     f_interp_RF = interpolate.griddata((mesh['x'][levelfut>0], mesh['y'][levelfut>0]), f_RF, (xx, yy), method='linear')
 
     if is_iceflow:
-        C_interp_glads = interpolate.griddata((mesh['x'][levelset>0], mesh['y'][levelset>0]), C_glads[levelset>0], (xx, yy), method='linear')
-        C_interp_RF = interpolate.griddata((mesh['x'][levelset>0], mesh['y'][levelset>0]), C_RF[levelset>0], (xx, yy), method='linear')
+        # C_interp_glads = interpolate.griddata((mesh['x'][levelset>0], mesh['y'][levelset>0]), C_glads[levelset>0], (xx, yy), method='linear')
+        # C_interp_RF = interpolate.griddata((mesh['x'][levelset>0], mesh['y'][levelset>0]), C_RF[levelset>0], (xx, yy), method='linear')
 
-        u_interp_glads_glads = interpolate.griddata((mesh['x'][levelset>0], mesh['y'][levelset>0]), u_glads_glads[levelset>0], (xx, yy), method='linear')
-        u_interp_rf_rf = interpolate.griddata((mesh['x'][levelset>0], mesh['y'][levelset>0]), u_rf_rf[levelset>0], (xx, yy), method='linear')
-        u_interp_glads_rf = interpolate.griddata((mesh['x'][levelset>0], mesh['y'][levelset>0]), u_glads_rf[levelset>0], (xx, yy), method='linear')
-        u_interp_glads_cv = interpolate.griddata((mesh['x'][levelset>0], mesh['y'][levelset>0]), u_glads_cv[levelset>0], (xx, yy), method='linear')
-        # u_interp_rf_glads = interpolate.griddata((mesh['x'][levelset>0], mesh['y'][levelset>0]), u_rf_glads[levelset>0], (xx, yy), method='linear')
-        u_interp_glads_poc = interpolate.griddata((mesh['x'][levelset>0], mesh['y'][levelset>0]), u_glads_poc[levelset>0], (xx, yy), method='linear')
-        # u_interp_rf_poc = interpolate.griddata((mesh['x'][levelset>0], mesh['y'][levelset>0]), u_rf_poc[levelset>0], (xx, yy), method='linear')
-        # u_interp_poc = interpolate.griddata((mesh['x'][levelset>0], mesh['y'][levelset>0]), u_poc[levelset>0], (xx, yy), method='linear')
-        vv_interp = interpolate.griddata((mesh['x'][levelset>0], mesh['y'][levelset>0]), vv[levelset>0], (xx, yy), method='linear')
-        vv_interp[vv_interp<10] = np.nan
+        uinterp = lambda z: interpolate.griddata((mesh['x'], mesh['y']), z, (xx, yy), method='linear')
+        u_interp_glads_present = uinterp(u_glads_present)
+        u_interp_rf_present = uinterp(u_rf_present)
+        u_interp_cv_present = uinterp(u_cv_present)
+        u_interp_rf_future = uinterp(u_rf_future)
+
+        print('max:', np.max(u_interp_glads_present))
+
+        # u_interp_glads_glads = interpolate.griddata((mesh['x'][levelset>0], mesh['y'][levelset>0]), u_glads_glads[levelset>0], (xx, yy), method='linear')
+        # u_interp_rf_rf = interpolate.griddata((mesh['x'][levelset>0], mesh['y'][levelset>0]), u_rf_rf[levelset>0], (xx, yy), method='linear')
+        # u_interp_glads_rf = interpolate.griddata((mesh['x'][levelset>0], mesh['y'][levelset>0]), u_glads_rf[levelset>0], (xx, yy), method='linear')
+        # u_interp_glads_cv = interpolate.griddata((mesh['x'][levelset>0], mesh['y'][levelset>0]), u_glads_cv[levelset>0], (xx, yy), method='linear')
+        # # u_interp_rf_glads = interpolate.griddata((mesh['x'][levelset>0], mesh['y'][levelset>0]), u_rf_glads[levelset>0], (xx, yy), method='linear')
+        # u_interp_glads_poc = interpolate.griddata((mesh['x'][levelset>0], mesh['y'][levelset>0]), u_glads_poc[levelset>0], (xx, yy), method='linear')
+        # # u_interp_rf_poc = interpolate.griddata((mesh['x'][levelset>0], mesh['y'][levelset>0]), u_rf_poc[levelset>0], (xx, yy), method='linear')
+        # # u_interp_poc = interpolate.griddata((mesh['x'][levelset>0], mesh['y'][levelset>0]), u_poc[levelset>0], (xx, yy), method='linear')
+        # vv_interp = interpolate.griddata((mesh['x'][levelset>0], mesh['y'][levelset>0]), vv[levelset>0], (xx, yy), method='linear')
+        # vv_interp[vv_interp<10] = np.nan
 
     fig,ax1 = plt.subplots()
     for ax in [ax1, axs[p,1]]:
@@ -134,15 +147,10 @@ for p in range(2):
         alpha = 0.75
         fig,ax1 = plt.subplots()
         for ax in [ax1, axs[p,2]]:
-            ax.plot(ss/1e3, vv_interp, color='black', label='Observed', linewidth=2)
-            # ax.plot(ss/1e3, u_interp_poc, label='C_poc, N_poc', color=colors[0], linestyle=linestyles[0])
-            ax.plot(ss/1e3, u_interp_glads_glads, label='C_glads, N_glads', color=colors[2], linestyle=linestyles[1], alpha=alpha, zorder=4)
-            ax.plot(ss/1e3, u_interp_glads_rf, label='C_glads, N_RF', color=colors[2], linestyle=linestyles[2], alpha=alpha, zorder=5)
-            ax.plot(ss/1e3, u_interp_glads_cv, label='C_glads, N_CV', color=colors[2], linestyle=linestyles[0], alpha=alpha, zorder=5)
-            ax.plot(ss/1e3, u_interp_glads_poc, label='C_glads, N_poc', color=colors[0], linestyle=linestyles[0], alpha=alpha, zorder=5)
-            # ax.plot(ss/1e3, u_interp_rf_glads, label='C_RF, N_glads', color=colors[1], linestyle=linestyles[2])
-            ax.plot(ss/1e3, u_interp_rf_rf, label='C_RF, N_RF', color=colors[1], linestyle=linestyles[1], alpha=alpha, zorder=4)
-            # ax.plot(ss/1e3, u_interp_rf_poc, label='C_RF, N_poc', color=colors[0], linestyle=linestyles[2])
+            ax.plot(ss/1e3, u_interp_glads_present, label='GlaDS N present', color='red', linestyle='dashed', alpha=alpha)
+            ax.plot(ss/1e3, u_interp_rf_present, label='RF N present', color='red', linestyle='dashed', alpha=alpha)
+            ax.plot(ss/1e3, u_interp_cv_present, label='CV N present', color='lightcoral', linestyle='dashed', alpha=alpha)
+            ax.plot(ss/1e3, u_interp_rf_future, label='RF N future', color='blue', linestyle='dashed', alpha=alpha)
             # ax.set_ylim([0.75, 1])
             # ax.legend()
             ax.grid()

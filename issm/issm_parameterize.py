@@ -46,6 +46,9 @@ md.initialization.pressure=md.materials.rho_ice*md.constants.g*md.geometry.thick
 print('   Construct ice rheological properties')
 md.materials.rheology_n=3*np.ones((md.mesh.numberofelements,1))
 md.materials.rheology_B=cuffey(md.initialization.temperature)
+md.materials.rheology_B[md.mask.ocean_levelset<0] = cuffey(md.initialization.temperature[md.mask.ocean_levelset<0]-10)
+print('mean rheology B:', np.mean(md.materials.rheology_B[md.mask.ocean_levelset<0]))
+print(np.mean(md.initialization.temperature[md.mask.ocean_levelset<0]))
 
 
 #Friction and inversion set up

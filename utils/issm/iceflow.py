@@ -91,7 +91,7 @@ def set_para(effective_pressure, initialization=None):
     md.thermal.spctemperature                 = md.initialization.temperature
     md.masstransport.spcthickness             = np.nan*np.ones((md.mesh.numberofvertices,1))
 
-    md.friction.coefficient[:] = 1
+    md.friction.coefficient[:] = 225
     md.friction.coefficient[md.mask.ocean_levelset<0]=0
     md.friction.coupling = 3
     md.friction.effective_pressure = effective_pressure
@@ -105,7 +105,7 @@ def set_para(effective_pressure, initialization=None):
     md.friction.p = np.ones((md.mesh.numberofelements,1))
     md.friction.p[:] = 5
     md.friction.q = np.ones((md.mesh.numberofelements,1))
-    md.friction.q[:] = 5
+    md.friction.q[:] = 1
 
     # SSA solver parameters
     md.stressbalance.restol=0.01
@@ -118,14 +118,14 @@ def set_para(effective_pressure, initialization=None):
     return md
 
 def run_friction_inversion(effective_pressure, initialization=None,
-    coefficients=None, min_para=1e-2, max_para=1e1, x0=None):
+    coefficients=None, min_para=1, max_para=1e4, x0=None):
 
     md = set_para(effective_pressure,initialization=initialization)
 
     # Set inversion-specific parameters
     md.inversion.iscontrol = 1
     md.inversion.maxsteps = 100
-    md.inversion.maxiter = 50
+    md.inversion.maxiter = 100
     md.inversion.dxmin = 0.00001
     md.inversion.gttol = 1e-6
     md.verbose = verbose('control', True)
@@ -187,25 +187,23 @@ def run_inverse_scenarios(basin, **kwargs):
     if not os.path.exists('solutions/'):
         os.makedirs('solutions')
 
-    coef_poc = run_friction_inversion(Nfields['poc'], min_para=1e-3, x0=0.5, **kwargs).friction.coefficient.squeeze()
-    np.save('solutions/friction_coefficient_POC_nonlinear.npy', coef_poc)
+    # coef_poc = run_friction_inversion(Nfields['poc'], **kwargs).friction.coefficient.squeeze()
+    # np.save('solutions/friction_coefficient_POC_nonlinear.npy', coef_poc)
 
-    coef_poc = np.load('solutions/friction_coefficient_POC_nonlinear.npy').squeeze()
-    calc_coef_glads = coef_poc * np.sqrt(Nfields['poc']/Nfields['glads'])
-    calc_coef_rf = coef_poc * np.sqrt(Nfields['poc']/Nfields['rf'])
+    # coef_poc = np.load('solutions/friction_coefficient_POC_nonlinear.npy').squeeze()
+    # calc_coef_glads = coef_poc * np.sqrt(Nfields['poc']/Nfields['glads'])
+    # calc_coef_rf = coef_poc * np.sqrt(Nfields['poc']/Nfields['rf'])
 
-    coef_glads = run_friction_inversion(Nfields['glads'], min_para=1e-2,
-        initialization=None, **kwargs).friction.coefficient.squeeze()
+    coef_glads = run_friction_inversion(Nfields['glads'], **kwargs).friction.coefficient.squeeze()
     np.save('solutions/friction_coefficient_glads_nonlinear.npy', coef_glads)
 
-    coef_RF = run_friction_inversion(Nfields['rf'], min_para=1e-2,
-        initialization=None, **kwargs).friction.coefficient.squeeze()
+    coef_RF = run_friction_inversion(Nfields['rf'], **kwargs).friction.coefficient.squeeze()
     np.save('solutions/friction_coefficient_RF_nonlinear.npy', coef_RF)
 
 def run_Lcurve_scenarios(basin, coefficients=None):
-    log_min = -6
-    log_max = -1
-    nsteps = 11
+    log_min = -12
+    log_max = -6
+    nsteps = 13
     alpha = np.logspace(log_min, log_max, nsteps)
     Nfields = _load_N_fields(basin)
     if coefficients is None:
@@ -214,13 +212,13 @@ def run_Lcurve_scenarios(basin, coefficients=None):
     if not os.path.exists('solutions'):
         os.makedirs('solutions')
 
-    Jpoc = Lcurve(Nfields['poc'], coefficients, alpha, min_para=1e-4)
+    Jpoc = Lcurve(Nfields['poc'], coefficients, alpha)
     np.save('solutions/Jpoc.npy', Jpoc)
 
-    Jglads = Lcurve(Nfields['glads'], coefficients, alpha, min_para=1e-2)
+    Jglads = Lcurve(Nfields['glads'], coefficients, alpha)
     np.save('solutions/Jglads.npy', Jglads)
 
-    Jrf = Lcurve(Nfields['rf'], coefficients, alpha, min_para=1e-2)
+    Jrf = Lcurve(Nfields['rf'], coefficients, alpha)
     np.save('solutions/Jrf.npy', Jrf)
 
     plot_Lcurve_scenarios()

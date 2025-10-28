@@ -121,6 +121,7 @@ def interpToMesh(mesh):
     # Final processing...
     mesh_base[mesh_ice_levelset==1] = ref_bed[mesh_ice_levelset==1]
     mesh_surface[mesh_ice_levelset==1] = ref_bed[mesh_ice_levelset==1]
+    mesh_surface[mesh_surface<mesh_base] = mesh_base[mesh_surface<mesh_base]
     mesh_thick = mesh_surface - mesh_base
 
     # Save fields
