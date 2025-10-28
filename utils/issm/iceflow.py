@@ -42,7 +42,7 @@ def _load_N_fields(basin):
     Nrf = np.zeros(len(levelset))
     Nrf[levelset>0] = np.load(f'../../../analysis/mean/data/pred_{basin}_N_rf.npy')
     Ncv = np.zeros(len(levelset))
-    Ncv[levelset>0] = np.load(f'../../../analysis/mean/data/CV_{basin}_N_rf.npy')
+    # Ncv[levelset>0] = np.load(f'../../../analysis/mean/data/CV_{basin}_N_rf.npy')
 
     # Enforce effective pressure caps
     rhoice = 917
@@ -187,18 +187,20 @@ def run_inverse_scenarios(basin, **kwargs):
     if not os.path.exists('solutions/'):
         os.makedirs('solutions')
 
-    # coef_poc = run_friction_inversion(Nfields['poc'], **kwargs).friction.coefficient.squeeze()
-    # np.save('solutions/friction_coefficient_POC_nonlinear.npy', coef_poc)
+    coef_poc = run_friction_inversion(Nfields['poc'], **kwargs).friction.coefficient.squeeze()
+    np.save('solutions/friction_coefficient_POC_nonlinear.npy', coef_poc)
 
     # coef_poc = np.load('solutions/friction_coefficient_POC_nonlinear.npy').squeeze()
     # calc_coef_glads = coef_poc * np.sqrt(Nfields['poc']/Nfields['glads'])
     # calc_coef_rf = coef_poc * np.sqrt(Nfields['poc']/Nfields['rf'])
 
-    coef_glads = run_friction_inversion(Nfields['glads'], **kwargs).friction.coefficient.squeeze()
-    np.save('solutions/friction_coefficient_glads_nonlinear.npy', coef_glads)
+    # Nglads = Nfields['glads']
+    # Nglads[np.isnan(Nglads)] = 1e6
+    # coef_glads = run_friction_inversion(Nfields['glads'], **kwargs).friction.coefficient.squeeze()
+    # np.save('solutions/friction_coefficient_glads_nonlinear.npy', coef_glads)
 
-    coef_RF = run_friction_inversion(Nfields['rf'], **kwargs).friction.coefficient.squeeze()
-    np.save('solutions/friction_coefficient_RF_nonlinear.npy', coef_RF)
+    # coef_RF = run_friction_inversion(Nfields['rf'], **kwargs).friction.coefficient.squeeze()
+    # np.save('solutions/friction_coefficient_RF_nonlinear.npy', coef_RF)
 
 def run_Lcurve_scenarios(basin, coefficients=None):
     log_min = -12

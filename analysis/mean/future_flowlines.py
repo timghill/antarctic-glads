@@ -3,7 +3,7 @@ from matplotlib import pyplot as plt
 from scipy import interpolate
 
 basins = ['G-H', 'G-H', 'C-Cp', 'B-C', 'Jpp-K', 'Cp-D']
-future = 2100
+future = 2050
 template = '{}_{:d}'
 linenumbers = [0, 1, 0, 0, 0, 0]
 
@@ -41,8 +41,8 @@ for p in range(2):
         # C_RF = np.load(f'../../issm/{basin}/issm/solutions/friction_coefficient_RF_nonlinear.npy').squeeze()
 
         u_glads_present = np.load(f'../../issm/{basin}/issm/solutions/u_glads_present.npy').squeeze()
-        u_rf_present = np.load(f'../../issm/{basin}/issm/solutions/u_rf_present.npy').squeeze()
-        u_cv_present = np.load(f'../../issm/{basin}/issm/solutions/u_cv_present.npy').squeeze()
+        # u_rf_present = np.load(f'../../issm/{basin}/issm/solutions/u_rf_present.npy').squeeze()
+        # u_cv_present = np.load(f'../../issm/{basin}/issm/solutions/u_cv_present.npy').squeeze()
         u_rf_future = np.load(f'../../issm/{basin}/issm/solutions/u_rf_future.npy').squeeze()
 
         # u_glads_glads_present = np.load(f'../../issm/{basin}/issm/solutions/u_glads_glads_nonlinear.npy').squeeze()
@@ -91,8 +91,8 @@ for p in range(2):
 
         uinterp = lambda z: interpolate.griddata((mesh['x'], mesh['y']), z, (xx, yy), method='linear')
         u_interp_glads_present = uinterp(u_glads_present)
-        u_interp_rf_present = uinterp(u_rf_present)
-        u_interp_cv_present = uinterp(u_cv_present)
+        # u_interp_rf_present = uinterp(u_rf_present)
+        # u_interp_cv_present = uinterp(u_cv_present)
         u_interp_rf_future = uinterp(u_rf_future)
 
         print('max:', np.max(u_interp_glads_present))
@@ -148,8 +148,8 @@ for p in range(2):
         fig,ax1 = plt.subplots()
         for ax in [ax1, axs[p,2]]:
             ax.plot(ss/1e3, u_interp_glads_present, label='GlaDS N present', color='red', linestyle='dashed', alpha=alpha)
-            ax.plot(ss/1e3, u_interp_rf_present, label='RF N present', color='red', linestyle='dashed', alpha=alpha)
-            ax.plot(ss/1e3, u_interp_cv_present, label='CV N present', color='lightcoral', linestyle='dashed', alpha=alpha)
+            # ax.plot(ss/1e3, u_interp_rf_present, label='RF N present', color='red', linestyle='dashed', alpha=alpha)
+            # ax.plot(ss/1e3, u_interp_cv_present, label='CV N present', color='lightcoral', linestyle='dashed', alpha=alpha)
             ax.plot(ss/1e3, u_interp_rf_future, label='RF N future', color='blue', linestyle='dashed', alpha=alpha)
             # ax.set_ylim([0.75, 1])
             # ax.legend()

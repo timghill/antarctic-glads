@@ -632,7 +632,7 @@ if __name__=='__main__':
     ]
 
     pred_basins = [
-        'G-H_2100',
+        'G-H_2050',
     ]
 
     features = [
