@@ -20,6 +20,7 @@ issm/RUN/*
 *.png
 
 notebooks
+venv
 
 issm/TMP
 
