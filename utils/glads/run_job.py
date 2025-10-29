@@ -52,7 +52,7 @@ def _defaults(config, jobid):
     md.transient = md.transient.deactivateall()
     md.transient.ishydrology = 1
     md.timestepping.start_time = 0
-    md.timestepping.final_time = 1
+    md.timestepping.final_time = 5
 
     md = config.parser(md, jobid)
 
@@ -255,7 +255,7 @@ def run_epoch(config, jobid):
         md.initialization.channelarea = S[:, -1]
         md.initialization.hydraulic_potential = phi
         md.timestepping.start_time = np.round(t0, 1)
-        md.timestepping.final_time = np.round(t0 + 1, 1)
+        md.timestepping.final_time = np.round(t0 + 5, 1)
 
         # Convergence check!
         dhdt = h_s[:, -1] - h_s[:, -2]
