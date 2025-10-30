@@ -42,7 +42,7 @@ def _load_N_fields(basin):
     Nrf = np.zeros(len(levelset))
     Nrf[levelset>0] = np.load(f'../../../analysis/mean/data/pred_{basin}_N_rf.npy')
     Ncv = np.zeros(len(levelset))
-    # Ncv[levelset>0] = np.load(f'../../../analysis/mean/data/CV_{basin}_N_rf.npy')
+    Ncv[levelset>0] = np.load(f'../../../analysis/mean/data/CV_{basin}_N_rf.npy')
 
     # Enforce effective pressure caps
     rhoice = 917
@@ -190,17 +190,17 @@ def run_inverse_scenarios(basin, **kwargs):
     coef_poc = run_friction_inversion(Nfields['poc'], **kwargs).friction.coefficient.squeeze()
     np.save('solutions/friction_coefficient_POC_nonlinear.npy', coef_poc)
 
-    # coef_poc = np.load('solutions/friction_coefficient_POC_nonlinear.npy').squeeze()
-    # calc_coef_glads = coef_poc * np.sqrt(Nfields['poc']/Nfields['glads'])
-    # calc_coef_rf = coef_poc * np.sqrt(Nfields['poc']/Nfields['rf'])
+    coef_poc = np.load('solutions/friction_coefficient_POC_nonlinear.npy').squeeze()
+    calc_coef_glads = coef_poc * np.sqrt(Nfields['poc']/Nfields['glads'])
+    calc_coef_rf = coef_poc * np.sqrt(Nfields['poc']/Nfields['rf'])
 
-    # Nglads = Nfields['glads']
-    # Nglads[np.isnan(Nglads)] = 1e6
-    # coef_glads = run_friction_inversion(Nfields['glads'], **kwargs).friction.coefficient.squeeze()
-    # np.save('solutions/friction_coefficient_glads_nonlinear.npy', coef_glads)
+    Nglads = Nfields['glads']
+    Nglads[np.isnan(Nglads)] = 1e6
+    coef_glads = run_friction_inversion(Nfields['glads'], **kwargs).friction.coefficient.squeeze()
+    np.save('solutions/friction_coefficient_glads_nonlinear.npy', coef_glads)
 
-    # coef_RF = run_friction_inversion(Nfields['rf'], **kwargs).friction.coefficient.squeeze()
-    # np.save('solutions/friction_coefficient_RF_nonlinear.npy', coef_RF)
+    coef_RF = run_friction_inversion(Nfields['rf'], **kwargs).friction.coefficient.squeeze()
+    np.save('solutions/friction_coefficient_RF_nonlinear.npy', coef_RF)
 
 def run_Lcurve_scenarios(basin, coefficients=None):
     log_min = -12
@@ -235,14 +235,15 @@ def plot_Lcurve_scenarios():
     fig,ax = plt.subplots()
     for i in range(len(Js)):
         J = Js[i]
+        print(J)
         alpha = J[:,0]
         Jv = J[:, 1]
         Jr = J[:,-2]/alpha
 
         ax.loglog(Jr, Jv, marker='.', label=labels[i])
         nsteps = len(Jv)
-        for i in range(0, nsteps, 2):
-            ax.text(Jr[i], Jv[i], r'$\alpha = {:.1e}$'.format(alpha[i]), rotation=30)
+        for j in range(0, nsteps, 2):
+            ax.text(Jr[j], Jv[j], r'$\alpha = {:.1e}$'.format(alpha[j]), rotation=30)
     ax.grid()
     ax.set_xlabel(r'$\mathcal{J}_{\rm{reg}}$')
     ax.set_ylabel(r'$\mathcal{J}_{\rm{u}}$')
@@ -286,9 +287,6 @@ def run_forward_scenarios(basin):
     # 7. Using the CV fields instead of full prediction
     u_glads_cv = run_forward(C_glads, Nfields['cv']).results.StressbalanceSolution.Vel.squeeze()
     np.save('solutions/u_glads_cv_nonlinear.npy', u_glads_cv)
-
-
-
 
 
 if __name__=='__main__':

@@ -279,7 +279,7 @@ def run_epoch(config, jobid):
 
 
     md.timestepping.time_step = 1e-4
-    md.settings.output_frequency = 1e3
+    md.settings.output_frequency = 1e4
 
     if not is_converged:
         # Solve and save output fields to numpy binary files

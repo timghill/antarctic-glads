@@ -40,9 +40,9 @@ for i,basin in enumerate(basins):
     ax.set_ylabel(r'$\mathcal{J}_{\rm{u}}$', fontsize=10)
     # ax.set_title('{} ({})'.format(alphabet[i], basin))
     
-    ax.text(-0.1, 1.025, alphabet[i], fontsize=10,
+    ax.text(-0.15, 1.05, alphabet[i], fontsize=10,
         fontweight='bold', transform=ax.transAxes)
-    ax.text(0.5, 1.025, basin, fontsize=10,
+    ax.text(0.5, 1.05, basin, fontsize=10,
         ha='center', transform=ax.transAxes)
 
 
