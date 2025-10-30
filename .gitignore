@@ -18,6 +18,8 @@ issm/RUN/*
 *.tar
 *.gz
 *.png
+*.out
+*.outbin
 
 notebooks
 venv
