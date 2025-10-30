@@ -118,9 +118,11 @@ def set_para(effective_pressure, initialization=None):
     return md
 
 def run_friction_inversion(effective_pressure, initialization=None,
-    coefficients=None, min_para=1, max_para=1e4, x0=None):
+    coefficients=None, min_para=1, max_para=1e4, x0=None, B=None):
 
     md = set_para(effective_pressure,initialization=initialization)
+    if B is not None:
+        md.materials.rheology_B[md.mask.ocean_levelset<0] = B[md.mask.ocean_levelset<0]
 
     # Set inversion-specific parameters
     md.inversion.iscontrol = 1
