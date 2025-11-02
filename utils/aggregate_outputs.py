@@ -38,7 +38,7 @@ def collect_issm_results(resdir, njobs, dtype=np.float32):
     # Construct file patterns
     jobids = np.arange(1, njobs+1)
 
-    resdir = os.path.join(resdir, 'RUN/output_{:03d}/steady/')
+    resdir = os.path.join(resdir, 'RUN/output_{:03d}/')
     respattern = os.path.join(resdir, '{}.npy')
     aggpattern = '{}.npy'
     testout = np.load(respattern.format(1, 'ff'))

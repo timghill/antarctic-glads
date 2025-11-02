@@ -453,7 +453,10 @@ if __name__=='__main__':
         # 'Jpp-K',
         # 'J-Jpp',
         # 'G-H_2100'
-        'G-H_2050',
+        # 'G-H_2050',
+        # 'Cp-D_2300',
+        # 'C-Cp_2300',
+        'B-C_2300',
     ]
     save_all_features(basins)
     plot_features(basins)

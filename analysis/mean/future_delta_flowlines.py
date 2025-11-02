@@ -129,16 +129,16 @@ for p in range(N):
 
     fig,ax1 = plt.subplots()
     for ax in [ax1, axs[p,1]]:
-        ax.plot(ss/1e3, N_interp_glads_present/1e6, color='black', label='GlaDS-present')
+        # ax.plot(ss/1e3, N_interp_glads_present/1e6, color='black', label='GlaDS-present')
         if p==2:
-            ax.plot(ss/1e3, N_interp_glads_future/1e6, color='black', label='GlaDS-future', linestyle='dotted')
-        ax.plot(ss/1e3, N_interp_RF_present/1e6, color='red', label='RF (train/present)', linestyle='dashed')
-        ax.plot(ss/1e3, N_interp_CV_present/1e6, color='lightcoral', label='RF (CV/present)', linestyle='dashed')
-        ax.plot(ss[retreat_mask]/1e3, N_interp_RF[retreat_mask]/1e6, color='red', label='RF (train/future)', linestyle='dotted')
-        ax.set_ylim([0, 4])
+            ax.plot(ss/1e3, (N_interp_glads_future - N_interp_glads_present)/1e6, color='black', label='GlaDS-future', linestyle='dotted')
+        # ax.plot(ss/1e3, N_interp_RF_present/1e6, color='red', label='RF (train/present)', linestyle='dashed')
+        # ax.plot(ss/1e3, N_interp_CV_present/1e6, color='lightcoral', label='RF (CV/present)', linestyle='dashed')
+        ax.plot(ss[retreat_mask]/1e3, (N_interp_RF-N_interp_RF_present)[retreat_mask]/1e6, color='red', label='RF (train/future)', linestyle='dotted')
+        # ax.set_ylim([0, 4])
         # ax.legend()
         ax.grid()
-        ax.set_ylabel('$N$ (MPa)')
+        ax.set_ylabel(r'$\Delta N$ (MPa)')
         # ax.set_title(labels[p])
     ax1.legend()
     ax1.set_xlabel('Distance from the groundine line (km)')
@@ -147,15 +147,15 @@ for p in range(N):
 
     fig,ax1 = plt.subplots()
     for ax in [ax1, axs[p,0]]:
-        ax.plot(ss/1e3, f_interp_glads_present, color='black', label='GlaDS-present')
+        # ax.plot(ss/1e3, f_interp_glads_present, color='black', label='GlaDS-present')
         if p==2:
-            ax.plot(ss/1e3, f_interp_glads_future, color='black', label='GlaDS-future', linestyle='dotted')
-        ax.plot(ss/1e3, f_interp_RF_present, color='red', label='RF (train/present)', linestyle='dashed')
-        ax.plot(ss/1e3, f_interp_CV_present, color='lightcoral', label='RF (CV/present)', linestyle='dashed')
-        ax.plot(ss[retreat_mask]/1e3, f_interp_RF[retreat_mask], color='red', label='RF (train/future)', linestyle='dotted')
-        ax.set_ylim([0.6, 1])
+            ax.plot(ss/1e3, f_interp_glads_future - f_interp_glads_present, color='black', label='GlaDS-future', linestyle='dotted')
+        # ax.plot(ss/1e3, f_interp_RF_present, color='red', label='RF (train/present)', linestyle='dashed')
+        # ax.plot(ss/1e3, f_interp_CV_present, color='lightcoral', label='RF (CV/present)', linestyle='dashed')
+        ax.plot(ss[retreat_mask]/1e3, f_interp_RF[retreat_mask] - f_interp_RF_present[retreat_mask], color='red', label='RF (train/future)', linestyle='dotted')
+        ax.set_ylim([-0.2, 0.2])
         ax.grid()
-        ax.set_ylabel('Flotation fraction (-)')
+        ax.set_ylabel(r'$\Delta$Flotation fraction (-)')
     ax1.set_title(labels[p])
     # axs[p,0].set_ylabel(labels[p])
     axs[p,2].text(0.95, 0.95, '{}, {}'.format(labels[p], future), ha='right', va='top',
@@ -183,7 +183,7 @@ for p in range(N):
             ax.set_ylim(bottom=0)
         ax1.legend()
         ax1.set_xlabel('Distance from the grounding line (km)')
-        fig.savefig(f'figures/profile_{basin}_{p:02d}_u_nonlinear.png', dpi=400)
+        # fig.savefig(f'figures/profile_{basin}_{p:02d}_u_nonlinear.png', dpi=400)
     else:
         axs[p,2].set_visible(False)
 
@@ -195,4 +195,4 @@ axs[0,2].legend(bbox_to_anchor=(0, 1, 1., 1.0), loc='lower center', frameon=Fals
 for ax in axs[p]:
     ax.set_xlabel('Distance from grounding line (km)')
 axs[0,0].legend(bbox_to_anchor=(0,1,1,0.2), loc='lower left', frameon=False, ncols=3)
-fig2.savefig('figures/future_profiles.png', dpi=400)
+fig2.savefig('figures/future_delta_profiles.png', dpi=400)

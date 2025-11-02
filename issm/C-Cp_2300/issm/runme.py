@@ -123,5 +123,5 @@ def run_scenarios(basin, year):
     return
 
 if __name__=='__main__':
-    run_scenarios('G-H', 2050)
-    # run_scenarios('C-Cp', '2300')
+    # run_scenarios('G-H', 2050)
+    run_scenarios('C-Cp', '2300')

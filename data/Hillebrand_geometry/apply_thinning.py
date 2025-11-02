@@ -1,3 +1,4 @@
+import os
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.tri import Triangulation
@@ -10,6 +11,13 @@ rhowater = 1027
 rhofresh = 1000
 
 def main(basin, index):
+    year = int(index + 2000 - 1)
+    basindir = f'../../issm/{basin}_{year}'
+    if not os.path.exists(basindir):
+        os.makedirs(basindir)
+    datadir = os.path.join(basindir, 'data/geom')
+    if not os.path.exists(datadir):
+        os.makedirs(datadir)
 
     # Read MALI model outputs (Hillebrand et al., 2025)
     initstore = zr.storage.LocalStore('AIS_4to20km_r01_20220907_relaxed_q5.zarr')
@@ -33,6 +41,7 @@ def main(basin, index):
     ref_surface = np.load(f'../../issm/{basin}/data/geom/surface.npy')
     ref_thick = np.load(f'../../issm/{basin}/data/geom/thick.npy')
     ref_base = np.load(f'../../issm/{basin}/data/geom/base.npy')
+    ref_bed = np.load(f'../../issm/{basin}/data/geom/bed.npy')
     print('min thick:', np.min(ref_thick))
 
     # new_surface = ref_surface + dH_mesh
@@ -59,11 +68,12 @@ def main(basin, index):
 
     new_base = new_surface - new_thick
 
-    np.save(f'base_{index:03d}.npy', new_base)
-    np.save(f'surface_{index:03d}.npy', new_surface)
-    np.save(f'thick_{index:03d}.npy', new_thick)
-    np.save(f'ocean_levelset_{index:03d}.npy', ocean_levelset)
-    np.save(f'ice_levelset_{index:03d}.npy', ice_levelset)
+    np.save(os.path.join(basindir, 'data/geom/base.npy'), new_base)
+    np.save(os.path.join(basindir, 'data/geom/surface.npy'), new_surface)
+    np.save(os.path.join(basindir, 'data/geom/thick.npy'), new_thick)
+    np.save(os.path.join(basindir, 'data/geom/bed.npy'), ref_bed)
+    np.save(os.path.join(basindir, 'data/geom/ocean_levelset.npy'), ocean_levelset)
+    np.save(os.path.join(basindir, 'data/geom/ice_levelset.npy'), ice_levelset)
 
     mtri = Triangulation(mesh['x'], mesh['y'], mesh['elements']-1)
     fig,axs = plt.subplots(ncols=2, nrows=2, sharex=True, sharey=True)
@@ -71,11 +81,11 @@ def main(basin, index):
     axs[0,1].tripcolor(mtri, new_thick, vmin=0, vmax=3000, cmap=cmocean.cm.amp)
     pc2 = axs[1,1].tripcolor(mtri, dH_mesh, vmin=-500, vmax=500, cmap=cmocean.cm.balance_r)
     axs[0,0].set_title('2000')
-    axs[0,1].set_title(str(2000 + int(index-1)))
+    axs[0,1].set_title(year)
     axs[1,0].tripcolor(mtri, new_surface-hf, vmin=-3000, vmax=3000, cmap=cmocean.cm.delta)
 
     # Contours
-    for ax in axs.flat:
+    for ax in axs.flat[1:]:
         ax.tricontour(mtri, ocean_levelset, levels=(0,), colors=('k',))
 
     axs[1,0].tricontour(mtri, ice_levelset, levels=(0,), colors=('cyan',), linewidths=0.25)
@@ -87,8 +97,22 @@ def main(basin, index):
 
 
     # axs[0,1].tricontour(mtri, new_surface-hf, levels=(0,), colors=('k',))
-    fig.savefig(f'dthickness_{index:03d}.png', dpi=400)
+    fig.savefig(f'dthickness_{basin}_{year}.png', dpi=400)
 
 
 if __name__=='__main__':
-    main('G-H', 51)
+    # main('G-H', 51)
+    # main('Cp-D', 51)
+    main('Cp-D', 101)
+    main('Cp-D', 301)
+
+    # main('B-C', 51)
+    # main('B-C', 101)
+    # main('B-C', 301)
+
+    # main('C-Cp', 51)
+    # main('C-Cp', 101)
+    # main('C-Cp', 301)
+
+    main('G-H', 101)
+    main('G-H', 301)
