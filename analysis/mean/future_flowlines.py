@@ -51,6 +51,8 @@ for p in range(N):
         u_rf_present = np.load(f'../../issm/{basin}/issm/solutions/u_rf_present.npy').squeeze()
         u_cv_present = np.load(f'../../issm/{basin}/issm/solutions/u_cv_present.npy').squeeze()
         u_rf_future = np.load(f'../../issm/{basin}/issm/solutions/u_rf_future.npy').squeeze()
+        if p==2:
+            u_glads_future = np.load(f'../../issm/{basin}/issm/solutions/u_glads_future.npy').squeeze()
 
         # u_glads_glads_present = np.load(f'../../issm/{basin}/issm/solutions/u_glads_glads_nonlinear.npy').squeeze()
         # u_rf_rf_present = np.load(f'../../issm/{basin}/issm/solutions/u_rf_rf_nonlinear.npy').squeeze()
@@ -101,7 +103,7 @@ for p in range(N):
         N_interp_glads_future = interpolate.griddata((mesh['x'][levelfut>0], mesh['y'][levelfut>0]), 
             np.load(f'data/pred_{basin}_N_glads.npy'), (xx, yy), method='linear')
         
-        print(N_interp_glads_future)
+        # print(N_interp_glads_future)
 
     if is_iceflow:
         # C_interp_glads = interpolate.griddata((mesh['x'][levelset>0], mesh['y'][levelset>0]), C_glads[levelset>0], (xx, yy), method='linear')
@@ -113,8 +115,10 @@ for p in range(N):
         u_interp_cv_present = uinterp(u_cv_present)
         u_interp_rf_future = uinterp(u_rf_future)
         u_interp_poc_present = uinterp(u_poc_present)
+        if p==2:
+            u_interp_glads_future = uinterp(u_glads_future)
 
-        print('max:', np.max(u_interp_glads_present))
+        # print('max:', np.max(u_interp_glads_present))
 
         # u_interp_glads_glads = interpolate.griddata((mesh['x'][levelset>0], mesh['y'][levelset>0]), u_glads_glads[levelset>0], (xx, yy), method='linear')
         # u_interp_rf_rf = interpolate.griddata((mesh['x'][levelset>0], mesh['y'][levelset>0]), u_rf_rf[levelset>0], (xx, yy), method='linear')
@@ -175,6 +179,9 @@ for p in range(N):
             ax.plot(ss/1e3, u_interp_rf_present, label='RF N present', color='red', linestyle='dashed', alpha=alpha)
             ax.plot(ss/1e3, u_interp_cv_present, label='CV N present', color='lightcoral', linestyle='dashed', alpha=alpha)
             ax.plot(ss/1e3, u_interp_rf_future, label='RF N future', color='blue', linestyle='solid', alpha=alpha)
+            if p==2:
+                ax.plot(ss/1e3, u_interp_glads_future, label='GlaDS N future', color='black', linestyle='solid', alpha=alpha)
+                
             # ax.set_ylim([0.75, 1])
             # ax.legend()
             ax.grid()
