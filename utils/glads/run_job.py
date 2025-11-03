@@ -257,9 +257,19 @@ def run_epoch(config, jobid):
         md.timestepping.start_time = np.round(t0, 1)
         md.timestepping.final_time = np.round(t0 + 5, 1)
 
+        ifinal = -1
+        iprev = -2
+        time = np.load(os.path.join(read_dir, 'time.npy'))
+        dt = time[ifinal] - time[iprev]
+        if dt<0.5:
+            ifinal = -1
+            iprev = -3
+        dt = time[ifinal] - time[iprev]
+        print('dt:', dt)
+
         # Convergence check!
-        dhdt = h_s[:, -1] - h_s[:, -2]
-        dSdt = S[:, -1] - S[:, -2]
+        dhdt = (h_s[:, ifinal] - h_s[:, iprev])/dt
+        dSdt = (S[:, ifinal] - S[:, iprev])/dt
 
         dh_threshold = 0.05*md.hydrology.bump_height[0]
         dh_quantile = np.quantile(np.abs(dhdt), 0.95)
