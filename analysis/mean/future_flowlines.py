@@ -9,6 +9,8 @@ linenumbers = [0, 1, 0, 0, 0]
 
 labels = ['Thwaites', 'PIG', 'Denman', 'Lambert', 'Totten']
 
+colors = ['#89b6bc', '#0d7d87', '#ff5a5e', '#c31e23']
+
 fig2, axs = plt.subplots(figsize=(12, 10), ncols=3, nrows=5, sharex=True)
 
 N = len(basins)
@@ -46,10 +48,11 @@ for p in range(N):
         # C_glads = np.load(f'../../issm/{basin}/issm/solutions/friction_coefficient_glads_nonlinear.npy').squeeze()
         # C_RF = np.load(f'../../issm/{basin}/issm/solutions/friction_coefficient_RF_nonlinear.npy').squeeze()
 
-        u_poc_present = np.load(f'../../issm/{basin}/issm/solutions/u_poc_nonlinear.npy').squeeze()
+        u_poc_present = np.load(f'../../issm/{basin}/issm/solutions/u_poc_present.npy').squeeze()
         u_glads_present = np.load(f'../../issm/{basin}/issm/solutions/u_glads_present.npy').squeeze()
         u_rf_present = np.load(f'../../issm/{basin}/issm/solutions/u_rf_present.npy').squeeze()
         u_cv_present = np.load(f'../../issm/{basin}/issm/solutions/u_cv_present.npy').squeeze()
+        u_poc_future = np.load(f'../../issm/{basin}/issm/solutions/u_poc_future.npy').squeeze()
         u_rf_future = np.load(f'../../issm/{basin}/issm/solutions/u_rf_future.npy').squeeze()
         if p==2:
             u_glads_future = np.load(f'../../issm/{basin}/issm/solutions/u_glads_future.npy').squeeze()
@@ -99,9 +102,9 @@ for p in range(N):
 
         # f_interp_glads_future = interp(f_glads_future[levelfut>0])
         f_interp_glads_future = interpolate.griddata((mesh['x'][levelfut>0], mesh['y'][levelfut>0]), 
-            f_glads_future[levelfut>0], (xx, yy), method='linear')
+            f_glads_future[levelfut>0], (xx, yy), method='nearest')
         N_interp_glads_future = interpolate.griddata((mesh['x'][levelfut>0], mesh['y'][levelfut>0]), 
-            np.load(f'data/pred_{basin}_N_glads.npy'), (xx, yy), method='linear')
+            np.load(f'data/pred_{basin}_N_glads.npy'), (xx, yy), method='nearest')
         
         # print(N_interp_glads_future)
 
@@ -115,6 +118,7 @@ for p in range(N):
         u_interp_cv_present = uinterp(u_cv_present)
         u_interp_rf_future = uinterp(u_rf_future)
         u_interp_poc_present = uinterp(u_poc_present)
+        u_interp_poc_future = uinterp(u_poc_future)
         if p==2:
             u_interp_glads_future = uinterp(u_glads_future)
 
@@ -133,12 +137,16 @@ for p in range(N):
 
     fig,ax1 = plt.subplots()
     for ax in [ax1, axs[p,1]]:
-        ax.plot(ss/1e3, N_interp_glads_present/1e6, color='black', label='GlaDS-present')
+        ax.plot(ss/1e3, N_interp_glads_present/1e6, color=colors[0], label='GlaDS present')
         if p==2:
-            ax.plot(ss/1e3, N_interp_glads_future/1e6, color='black', label='GlaDS-future', linestyle='dotted')
-        ax.plot(ss/1e3, N_interp_RF_present/1e6, color='red', label='RF (train/present)', linestyle='dashed')
-        ax.plot(ss/1e3, N_interp_CV_present/1e6, color='lightcoral', label='RF (CV/present)', linestyle='dashed')
-        ax.plot(ss[retreat_mask]/1e3, N_interp_RF[retreat_mask]/1e6, color='red', label='RF (train/future)', linestyle='dotted')
+            ax.plot(ss/1e3, N_interp_glads_future/1e6, color=colors[1], 
+                label='GlaDS future')
+        ax.plot(ss/1e3, N_interp_RF_present/1e6, color=colors[2], 
+            label='RF present')
+        # ax.plot(ss/1e3, N_interp_CV_present/1e6, color=colors[2], 
+        #     label='CV present', linestyle='dashed')
+        ax.plot(ss[retreat_mask]/1e3, N_interp_RF[retreat_mask]/1e6, color=colors[3], 
+            label='RF future')
         ax.set_ylim([0, 4])
         # ax.legend()
         ax.grid()
@@ -151,12 +159,17 @@ for p in range(N):
 
     fig,ax1 = plt.subplots()
     for ax in [ax1, axs[p,0]]:
-        ax.plot(ss/1e3, f_interp_glads_present, color='black', label='GlaDS-present')
+        ax.plot(ss/1e3, f_interp_glads_present, color=colors[0], 
+            label='GlaDS-present')
         if p==2:
-            ax.plot(ss/1e3, f_interp_glads_future, color='black', label='GlaDS-future', linestyle='dotted')
-        ax.plot(ss/1e3, f_interp_RF_present, color='red', label='RF (train/present)', linestyle='dashed')
-        ax.plot(ss/1e3, f_interp_CV_present, color='lightcoral', label='RF (CV/present)', linestyle='dashed')
-        ax.plot(ss[retreat_mask]/1e3, f_interp_RF[retreat_mask], color='red', label='RF (train/future)', linestyle='dotted')
+            ax.plot(ss/1e3, f_interp_glads_future, color=colors[1], 
+                label='GlaDS future', linestyle='solid')
+        ax.plot(ss/1e3, f_interp_RF_present, color=colors[2], 
+            label='RF present')
+        # ax.plot(ss/1e3, f_interp_CV_present, color=colors[2], 
+        #     label='CV present', linestyle='dashed')
+        ax.plot(ss[retreat_mask]/1e3, f_interp_RF[retreat_mask], color=colors[3], 
+            label='RF future', linestyle='solid')
         ax.set_ylim([0.6, 1])
         ax.grid()
         ax.set_ylabel('Flotation fraction (-)')
@@ -169,18 +182,25 @@ for p in range(N):
     # fig.savefig(f'figures/profile_{basin}_{p:02d}_f.png', dpi=400)
 
     if is_iceflow:
-        colors = ['gray', 'blue', 'red']
-        linestyles = ['dotted', 'solid', 'dashed']
-        alpha = 0.75
+        # colors = ['gray', 'blue', 'red']
+        alpha = 0.9
         fig,ax1 = plt.subplots()
         for ax in [ax1, axs[p,2]]:
-            ax.plot(ss/1e3, u_interp_poc_present, label='POC N', color='gray', linestyle='dashed', alpha=alpha)
-            ax.plot(ss/1e3, u_interp_glads_present, label='GlaDS N present', color='red', linestyle='solid', alpha=alpha)
-            ax.plot(ss/1e3, u_interp_rf_present, label='RF N present', color='red', linestyle='dashed', alpha=alpha)
-            ax.plot(ss/1e3, u_interp_cv_present, label='CV N present', color='lightcoral', linestyle='dashed', alpha=alpha)
-            ax.plot(ss/1e3, u_interp_rf_future, label='RF N future', color='blue', linestyle='solid', alpha=alpha)
+            ax.plot(ss/1e3, u_interp_poc_present, label='POC N present', 
+                color='gray', linestyle='dashed', alpha=alpha)
+            ax.plot(ss/1e3, u_interp_rf_present, label='RF N present', 
+                color=colors[2], linestyle='solid', alpha=alpha)
+            ax.plot(ss/1e3, u_interp_glads_present, label='GlaDS N present', 
+                color=colors[0], linestyle='solid', alpha=alpha)
+            # ax.plot(ss/1e3, u_interp_cv_present, label='CV N present', 
+            #     color=colors[2], linestyle='dashed', alpha=alpha)
+            ax.plot(ss/1e3, u_interp_poc_future, label='POC N future', 
+                color='dimgray', linestyle='dashed', alpha=alpha)
+            ax.plot(ss/1e3, u_interp_rf_future, label='RF N future', 
+                color=colors[3], linestyle='solid', alpha=alpha)
             if p==2:
-                ax.plot(ss/1e3, u_interp_glads_future, label='GlaDS N future', color='black', linestyle='solid', alpha=alpha)
+                ax.plot(ss/1e3, u_interp_glads_future, label='GlaDS N future', 
+                    color=colors[1], linestyle='solid', alpha=alpha)
                 
             # ax.set_ylim([0.75, 1])
             # ax.legend()

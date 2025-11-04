@@ -632,10 +632,15 @@ if __name__=='__main__':
     ]
 
     pred_basins = [
-        # 'G-H_2050',
-        # 'Cp-D_2300',
+        'G-H_2050',
+        'Cp-D_2300',
         'C-Cp_2300',
-        # 'B-C_2300',
+        'B-C_2300',
+        'G-H',
+        'Cp-D',
+        'C-Cp',
+        'B-C',
+        'Jpp-K',
     ]
 
     features = [
@@ -653,9 +658,9 @@ if __name__=='__main__':
 
     index = None
 
-    # rfData, regr = trainRF(basins, features, nPerBasin=10000, feature_importance=False, index=index)
-    # with open('rf.pkl', 'wb') as rfout:
-    #     pickle.dump(regr, rfout)
+    rfData, regr = trainRF(basins, features, nPerBasin=10000, feature_importance=False, index=index)
+    with open('rf.pkl', 'wb') as rfout:
+        pickle.dump(regr, rfout)
     with open('rf.pkl', 'rb') as rfin:
         regr = pickle.load(rfin)
     rfData = RFData(basins, features, index=index)

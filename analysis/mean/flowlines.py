@@ -5,6 +5,8 @@ from scipy import interpolate
 basins = ['G-H', 'G-H', 'C-Cp', 'B-C', 'Jpp-K', 'Cp-D']
 linenumbers = [0, 1, 0, 0, 0, 0]
 
+colors = ['#89b6bc', '#0d7d87', '#ff5a5e', '#c31e23']
+
 labels = ['Thwaites', 'PIG', 'Denman', 'Lambert', 'Recovery', 'Totten']
 
 fig2, axs = plt.subplots(figsize=(12, 12), ncols=3, nrows=6, sharex=True)
@@ -75,9 +77,9 @@ for p in range(N):
 
     fig,ax1 = plt.subplots()
     for ax in [ax1, axs[p,1]]:
-        ax.plot(ss/1e3, N_interp_glads/1e6, color='black', label='GlaDS')
-        ax.plot(ss/1e3, N_interp_RF/1e6, color='red', label='RF (train)', linestyle='dashed')
-        ax.plot(ss/1e3, N_interp_CV/1e6, color='red', label='RF (CV)', linestyle='dotted')
+        ax.plot(ss/1e3, N_interp_glads/1e6, color=colors[0], label='GlaDS')
+        ax.plot(ss/1e3, N_interp_RF/1e6, color=colors[2], label='RF', linestyle='solid')
+        ax.plot(ss/1e3, N_interp_CV/1e6, color=colors[2], label='CV', linestyle='dashed')
         ax.set_ylim([0, 4])
         # ax.legend()
         ax.grid()
@@ -90,9 +92,9 @@ for p in range(N):
 
     fig,ax1 = plt.subplots()
     for ax in [ax1, axs[p,0]]:
-        ax.plot(ss/1e3, f_interp_glads, color='black', label='GlaDS')
-        ax.plot(ss/1e3, f_interp_RF, color='red', label='RF (train)', linestyle='dashed')
-        ax.plot(ss/1e3, f_interp_CV, color='red', label='RF (CV)', linestyle='dotted')
+        ax.plot(ss/1e3, f_interp_glads, color=colors[0], label='GlaDS')
+        ax.plot(ss/1e3, f_interp_RF, color=colors[2], label='RF')
+        ax.plot(ss/1e3, f_interp_CV, color=colors[2], label='CV', linestyle='dashed')
         ax.set_ylim([0.6, 1])
         ax.grid()
         ax.set_ylabel('Flotation fraction (-)')
@@ -105,19 +107,17 @@ for p in range(N):
     fig.savefig(f'figures/profile_{basin}_{p:02d}_f.png', dpi=400)
 
     if is_iceflow:
-        colors = ['gray', 'blue', 'red']
-        linestyles = ['dotted', 'solid', 'dashed']
         alpha = 0.75
         fig,ax1 = plt.subplots()
         for ax in [ax1, axs[p,2]]:
             ax.plot(ss/1e3, vv_interp, color='black', label='Observed', linewidth=2)
             # ax.plot(ss/1e3, u_interp_poc, label='C_poc, N_poc', color=colors[0], linestyle=linestyles[0])
-            ax.plot(ss/1e3, u_interp_glads_glads, label='C_glads, N_glads', color=colors[2], linestyle=linestyles[1], alpha=alpha, zorder=4)
-            ax.plot(ss/1e3, u_interp_glads_rf, label='C_glads, N_RF', color=colors[2], linestyle=linestyles[2], alpha=alpha, zorder=5)
-            ax.plot(ss/1e3, u_interp_glads_cv, label='C_glads, N_CV', color=colors[2], linestyle=linestyles[0], alpha=alpha, zorder=5)
-            ax.plot(ss/1e3, u_interp_glads_poc, label='C_glads, N_poc', color=colors[0], linestyle=linestyles[0], alpha=alpha, zorder=5)
+            ax.plot(ss/1e3, u_interp_glads_glads, label='C_glads, N_glads', color=colors[1], linestyle='solid', alpha=alpha, zorder=4)
+            ax.plot(ss/1e3, u_interp_glads_rf, label='C_glads, N_RF', color=colors[2], linestyle='solid', alpha=alpha, zorder=5)
+            ax.plot(ss/1e3, u_interp_glads_cv, label='C_glads, N_CV', color=colors[2], linestyle='dashed', alpha=alpha, zorder=5)
+            ax.plot(ss/1e3, u_interp_glads_poc, label='C_glads, N_poc', color='dimgray', linestyle='dashed', alpha=alpha, zorder=5)
             # ax.plot(ss/1e3, u_interp_rf_glads, label='C_RF, N_glads', color=colors[1], linestyle=linestyles[2])
-            ax.plot(ss/1e3, u_interp_rf_rf, label='C_RF, N_RF', color=colors[1], linestyle=linestyles[1], alpha=alpha, zorder=4)
+            ax.plot(ss/1e3, u_interp_rf_rf, label='C_RF, N_RF', color=colors[3], linestyle='solid', alpha=alpha, zorder=4)
             # ax.plot(ss/1e3, u_interp_rf_poc, label='C_RF, N_poc', color=colors[0], linestyle=linestyles[2])
             # ax.set_ylim([0.75, 1])
             # ax.legend()
