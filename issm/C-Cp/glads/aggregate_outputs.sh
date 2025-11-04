@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --account=def-gflowers
-#SBATCH --time=0-02:00
+#SBATCH --time=0-04:00
 #SBATCH --mem=4G
 #SBATCH --job-name=aggregate
 #SBATCH --output=aggregate_outputs.out

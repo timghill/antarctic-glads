@@ -43,6 +43,22 @@ def _load_N_fields(basin, year=2300):
     present = basin
     future = f'{basin}_{year}'
 
+    rhow = 1023
+    rhoice = 917
+    g = 9.81
+    present_thick = np.load(f'../../{present}/data/geom/thick.npy')
+    future_thick = np.load(f'../../{future}/data/geom/thick.npy')
+    bed = np.load('../data/geom/bed.npy')
+    pice_present = present_thick*rhoice*g
+    pice_future = future_thick*rhoice*g
+    # pice = rhoice*g*thick
+    pwater = -rhow*g*bed
+    pwater[pwater<0] = 0
+    N_poc_present = pice_present - pwater
+    N_poc_future = pice_future - pwater
+
+    pice = pice_future
+
     N_glads_present = np.zeros(len(present_levelset))
     N_glads_present[present_levelset>0] = np.load(f'../../../analysis/mean/data/pred_{present}_N_glads.npy')
     # N_glads_present[future_levelset<0] = 0
@@ -60,22 +76,14 @@ def _load_N_fields(basin, year=2300):
     N_glads_future[future_levelset>0] =  np.load(f'../../../analysis/mean/data/pred_{future}_N_glads.npy')
 
     # Enforce effective pressure caps
-    rhoice = 917
-    g = 9.81
     
-    bed = np.load('../data/geom/bed.npy')
-    thick = np.load('../data/geom/thick.npy')
-    pice = rhoice*g*thick
-    rhow = 1023
-    pwater = -rhow*g*bed
-    pwater[pwater<0] = 0
-    Npoc = pice - pwater
     
     N_glads_present[N_glads_present>pice] = pice[N_glads_present>pice]
     N_rf_present[N_rf_present>pice] = pice[N_rf_present>pice]
     N_cv_present[N_cv_present>pice] = pice[N_cv_present>pice]
     N_rf_future[N_rf_future>pice] = pice[N_rf_future>pice]
-    Npoc[Npoc>pice] = pice[N_rf_future>pice]
+    N_poc_present[N_poc_present>pice] = pice[N_poc_present>pice]
+    N_poc_future[N_poc_future>pice] = pice[N_poc_future>pice]
     N_glads_future[N_glads_future>pice] = pice[N_glads_future>pice]
 
     N_glads_present[N_glads_present<0.01*pice] = 0.01*pice[N_glads_present<0.01*pice]
@@ -83,7 +91,9 @@ def _load_N_fields(basin, year=2300):
     N_cv_present[N_cv_present<0.01*pice] = 0.01*pice[N_cv_present<0.01*pice]
     N_rf_future[N_rf_future<0.01*pice] = 0.01*pice[N_rf_future<0.01*pice]
     N_glads_future[N_glads_future<0.01*pice] = 0.01*pice[N_glads_future<0.01*pice]
-    Npoc[Npoc<0.01*pice] = 0.01*pice[Npoc<0.01*pice]
+    N_poc_present[N_poc_present<0.01*pice] = 0.01*pice[N_poc_present<0.01*pice]
+    N_poc_future[N_poc_future<0.01*pice] = 0.01*pice[N_poc_future<0.01*pice]
+
 
     N = dict(
         glads_present=N_glads_present,
@@ -91,7 +101,8 @@ def _load_N_fields(basin, year=2300):
         cv_present=N_cv_present,
         rf_future=N_rf_future,
         glads_future=N_glads_future,
-        poc=Npoc
+        poc_future=N_poc_future,
+        poc_present=N_poc_present,
     )
     return N
 
@@ -106,6 +117,12 @@ def run_scenarios(basin, year):
     C_poc[levelset<0] = 0
     C_glads[levelset<0] = 0
     C_RF[levelset<0] = 0
+
+    u_poc_present = run_forward(C_poc, Nfields['poc_present']).results.StressbalanceSolution.Vel.squeeze()
+    np.save('solutions/u_poc_present.npy', u_poc_present)
+
+    u_poc_future = run_forward(C_poc, Nfields['poc_future']).results.StressbalanceSolution.Vel.squeeze()
+    np.save('solutions/u_poc_future.npy', u_poc_future)
 
     # u_poc = run_forward(C_poc, Nfields['poc']).results.StressbalanceSolution.Vel.squeeze()
     # np.save('solutions/u_poc_nonlinear.npy', u_poc)
@@ -127,9 +144,9 @@ def run_scenarios(basin, year):
     # np.save('solutions/u_rf_future.npy', u_rf_future)
     # print('max:', np.quantile(u_rf_future, 0.98))
 
-    u_glads_future = run_forward(C_glads, Nfields['glads_future']).results.StressbalanceSolution.Vel.squeeze()
-    np.save('solutions/u_glads_future.npy', u_glads_future)
-    print('max:', np.quantile(u_glads_future, 0.98))
+    # u_glads_future = run_forward(C_glads, Nfields['glads_future']).results.StressbalanceSolution.Vel.squeeze()
+    # np.save('solutions/u_glads_future.npy', u_glads_future)
+    # print('max:', np.quantile(u_glads_future, 0.98))
     return
 
 if __name__=='__main__':
