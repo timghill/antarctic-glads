@@ -259,12 +259,12 @@ def run_epoch(config, jobid):
 
         ifinal = -1
         iprev = -2
-        time = np.load(os.path.join(read_dir, 'time.npy'))
-        dt = time[ifinal] - time[iprev]
+        tt = np.load(os.path.join(read_dir, 'time.npy'))
+        dt = tt[ifinal] - tt[iprev]
         if dt<0.5:
             ifinal = -1
             iprev = -3
-        dt = time[ifinal] - time[iprev]
+        dt = tt[ifinal] - tt[iprev]
         print('dt:', dt)
 
         # Convergence check!
