@@ -6,6 +6,7 @@ basins = ['G-H', 'G-H', 'C-Cp', 'B-C', 'Cp-D']
 future = 2050
 template = '{}_{:d}'
 linenumbers = [0, 1, 0, 0, 0]
+futureruns = [2,3,4]
 
 labels = ['Thwaites', 'PIG', 'Denman', 'Lambert', 'Totten']
 
@@ -16,8 +17,8 @@ fig2, axs = plt.subplots(figsize=(12, 10), ncols=3, nrows=5, sharex=True)
 N = len(basins)
 for p in range(N):
 # for p in range(2):
-# for p in [0, 1, 2, 3, 5]:
-# for p in [2]:
+# for p in [2, 3]:
+# for p in [4]:
     if p<2:
         future = 2050
     else:
@@ -54,7 +55,7 @@ for p in range(N):
         u_cv_present = np.load(f'../../issm/{basin}/issm/solutions/u_cv_present.npy').squeeze()
         u_poc_future = np.load(f'../../issm/{basin}/issm/solutions/u_poc_future.npy').squeeze()
         u_rf_future = np.load(f'../../issm/{basin}/issm/solutions/u_rf_future.npy').squeeze()
-        if p==2:
+        if p in futureruns:
             u_glads_future = np.load(f'../../issm/{basin}/issm/solutions/u_glads_future.npy').squeeze()
 
         # u_glads_glads_present = np.load(f'../../issm/{basin}/issm/solutions/u_glads_glads_nonlinear.npy').squeeze()
@@ -97,7 +98,7 @@ for p in range(N):
     f_interp_CV_present = interp(f_CV_present)
     f_interp_RF = interpolate.griddata((mesh['x'][levelfut>0], mesh['y'][levelfut>0]), f_RF, (xx, yy), method='linear')
 
-    if p==2:
+    if p in futureruns:
         f_glads_future = np.nanmean(np.load(f'../../issm/{basin}/glads/ff.npy'), axis=1)
 
         # f_interp_glads_future = interp(f_glads_future[levelfut>0])
@@ -119,7 +120,7 @@ for p in range(N):
         u_interp_rf_future = uinterp(u_rf_future)
         u_interp_poc_present = uinterp(u_poc_present)
         u_interp_poc_future = uinterp(u_poc_future)
-        if p==2:
+        if p in futureruns:
             u_interp_glads_future = uinterp(u_glads_future)
 
         # print('max:', np.max(u_interp_glads_present))
@@ -138,8 +139,8 @@ for p in range(N):
     fig,ax1 = plt.subplots()
     for ax in [ax1, axs[p,1]]:
         ax.plot(ss/1e3, N_interp_glads_present/1e6, color=colors[0], label='GlaDS present')
-        if p==2:
-            ax.plot(ss/1e3, N_interp_glads_future/1e6, color=colors[1], 
+        if p in futureruns:
+            ax.plot(ss[retreat_mask]/1e3, N_interp_glads_future[retreat_mask]/1e6, color=colors[1], 
                 label='GlaDS future')
         ax.plot(ss/1e3, N_interp_RF_present/1e6, color=colors[2], 
             label='RF present')
@@ -161,8 +162,8 @@ for p in range(N):
     for ax in [ax1, axs[p,0]]:
         ax.plot(ss/1e3, f_interp_glads_present, color=colors[0], 
             label='GlaDS-present')
-        if p==2:
-            ax.plot(ss/1e3, f_interp_glads_future, color=colors[1], 
+        if p in futureruns:
+            ax.plot(ss[retreat_mask]/1e3, f_interp_glads_future[retreat_mask], color=colors[1], 
                 label='GlaDS future', linestyle='solid')
         ax.plot(ss/1e3, f_interp_RF_present, color=colors[2], 
             label='RF present')
@@ -186,20 +187,20 @@ for p in range(N):
         alpha = 0.9
         fig,ax1 = plt.subplots()
         for ax in [ax1, axs[p,2]]:
-            ax.plot(ss/1e3, u_interp_poc_present, label='POC N present', 
+            ax.plot(ss[retreat_mask]/1e3, u_interp_poc_present[retreat_mask], label='POC N present', 
                 color='gray', linestyle='dashed', alpha=alpha)
-            ax.plot(ss/1e3, u_interp_rf_present, label='RF N present', 
+            ax.plot(ss[retreat_mask]/1e3, u_interp_rf_present[retreat_mask], label='RF N present', 
                 color=colors[2], linestyle='solid', alpha=alpha)
-            ax.plot(ss/1e3, u_interp_glads_present, label='GlaDS N present', 
+            ax.plot(ss[retreat_mask]/1e3, u_interp_glads_present[retreat_mask], label='GlaDS N present', 
                 color=colors[0], linestyle='solid', alpha=alpha)
             # ax.plot(ss/1e3, u_interp_cv_present, label='CV N present', 
             #     color=colors[2], linestyle='dashed', alpha=alpha)
-            ax.plot(ss/1e3, u_interp_poc_future, label='POC N future', 
+            ax.plot(ss[retreat_mask]/1e3, u_interp_poc_future[retreat_mask], label='POC N future', 
                 color='dimgray', linestyle='dashed', alpha=alpha)
-            ax.plot(ss/1e3, u_interp_rf_future, label='RF N future', 
+            ax.plot(ss[retreat_mask]/1e3, u_interp_rf_future[retreat_mask], label='RF N future', 
                 color=colors[3], linestyle='solid', alpha=alpha)
-            if p==2:
-                ax.plot(ss/1e3, u_interp_glads_future, label='GlaDS N future', 
+            if p in futureruns:
+                ax.plot(ss[retreat_mask]/1e3, u_interp_glads_future[retreat_mask], label='GlaDS N future', 
                     color=colors[1], linestyle='solid', alpha=alpha)
                 
             # ax.set_ylim([0.75, 1])
