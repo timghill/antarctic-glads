@@ -14,7 +14,10 @@ basins = [
     'G-H',
     'J-Jpp',
     'Jpp-K',
+    'B-C_2300',
     'C-Cp_2300',
+    'Cp-D_2300',
+    'G-H_2050',
 ]
 
 dhdt_quantiles = np.zeros(len(basins))
