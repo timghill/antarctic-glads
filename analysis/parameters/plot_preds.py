@@ -5,10 +5,10 @@ import cmocean
 
 basins = [
     'B-C',
-    # 'C-Cp',
+    'C-Cp',
     'Cp-D',
     'G-H',
-    # 'Jpp-K',
+    'Jpp-K',
 ]
 
 for basin in basins:

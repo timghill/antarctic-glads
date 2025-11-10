@@ -32,6 +32,9 @@ def main(basin, future):
     rf_N_future = np.nan*np.zeros(future_mask.shape)
     rf_N_future[future_mask>0] = np.load(f'data/pred_{basin}_{future}_N_rf.npy')
 
+    u_rf_future = np.load(f'../../issm/{basin}_{future}/issm/solutions/u_rf_future.npy')
+    u_glads_future = np.load(f'../../issm/{basin}_{future}/issm/solutions/u_glads_future.npy')
+
     pm = np.logical_and(glads_f_present<=1, glads_f_present>=0)
     fm = np.logical_and(glads_f_future<=1, glads_f_future>=0)
     R2_f_present = 1 - np.nanvar(rf_f_present[pm] - glads_f_present[pm])/np.nanvar(glads_f_present[pm])
@@ -39,6 +42,18 @@ def main(basin, future):
     R2_N_present = 1 - np.nanvar(rf_N_present[pm] - glads_N_present[pm])/np.nanvar(glads_N_present[pm])
     R2_N_future = 1 - np.nanvar(rf_N_future[fm] - glads_N_future[fm])/np.nanvar(glads_N_future[fm])
     print(R2_f_present, R2_f_future, R2_N_present, R2_N_future)
+
+    am = np.logical_and(pm, fm)
+    rf_deltaf = rf_f_future[am] - rf_f_present[am]
+    glads_deltaf = glads_f_future[am] - glads_f_present[am]
+    rf_deltaN = rf_N_future[am] - rf_N_present[am]
+    glads_deltaN = glads_N_future[am] - glads_N_present[am]
+    r2_deltaf = 1 - np.nanvar(rf_deltaf - glads_deltaf)/np.nanvar(glads_deltaf)
+    r2_deltaN = 1 - np.nanvar(rf_deltaN - glads_deltaN)/np.nanvar(glads_deltaN)
+    print(r2_deltaf, r2_deltaN)
+
+    r2_speed = 1 - np.nanvar(u_rf_future - u_glads_future)/np.nanvar(u_glads_future)
+    print(r2_speed)
 
     mtri = Triangulation(mesh['x'], mesh['y'], mesh['elements']-1)
     fig,axs = plt.subplots(ncols=4, nrows=4)
@@ -76,9 +91,12 @@ def main(basin, future):
     fig.colorbar(efpc, ax=axs[1], label=r'$\Delta$Flotation fraction')
     fig.colorbar(Npc, ax=axs[2], label='N (Pa)')
     fig.colorbar(eNpc, ax=axs[3], label=r'$\Delta$N (Pa)')
-    fig.savefig('figures/compare_future.png', dpi=400)
+    fig.savefig(f'figures/compare_future_{basin}_{future}.png', dpi=400)
 
 if __name__=='__main__':
+    main('G-H', 2050)
+    main('B-C', 2300)
     main('C-Cp', 2300)
+    main('Cp-D', 2300)
 
     

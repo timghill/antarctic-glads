@@ -3,6 +3,7 @@ from scipy.interpolate import griddata
 from matplotlib import pyplot as plt
 from matplotlib.patches import Rectangle
 from matplotlib.tri import Triangulation
+from matplotlib import colors
 import cmocean
 from matplotlib.gridspec import GridSpec
 import xarray as xr
@@ -66,35 +67,42 @@ cax2 = fig.add_subplot(gs[:2, -1])
 cax3 = fig.add_subplot(gs[3:, -1])
 
 # 1. Present N
-F_present = np.load('AISpred.npy')
+F_present = np.load('data/AISpred.npy')
 N_present = 917*9.81*thick*(1 - F_present)
 print(N_present.shape)
 Npc = ax1.pcolormesh(bmx, bmy, N_present/1e6, vmin=0, vmax=4, cmap=cmocean.cm.haline)
 
 Ncbar = fig.colorbar(Npc, cax=cax1)
-Ncbar.set_label('N (MPa)', fontsize=8)
+Ncbar.set_label('$N$ (MPa)', fontsize=8)
 cax1.yaxis.tick_left()
 cax1.yaxis.set_label_position('left')
 cax1.tick_params(labelsize=8)
 
 # 2. Imposed thinning
 dH_grid[np.isnan(N_present)] = np.nan
-Hpc = ax2.pcolormesh(bmy, bmy, dH_grid, vmin=-500, vmax=500, cmap=cmocean.cm.balance_r)
+cnorm = colors.TwoSlopeNorm(vcenter=0, vmin=-2000, vmax=200)
+Hpc = ax2.pcolormesh(bmy, bmy, dH_grid, norm=cnorm, cmap=cmocean.cm.balance_r)
 Hcbar = fig.colorbar(Hpc, cax=cax2, extend='both')
 Hcbar.set_label(r'$\Delta$H (m)', fontsize=8)
 cax2.tick_params(labelsize=8)
+Hcbar.set_ticks([-2000, -1500, -1000, -500, 0, 50, 100, 150, 200])
 
 # 3. Future N
-N_future = np.maximum(0, N_present + 917*9.81*dH_grid*(1-F_present))
+F_future = np.load('data/AISpred2300.npy')
+thick_future = dH_grid + thick
+N_future = 917*9.81*thick_future*(1 - F_future)
+N_future[np.logical_and(np.isnan(N_future), ~np.isnan(N_present))] = 0
 Npc = ax3.pcolormesh(bmx, bmy, N_future/1e6, vmin=0, vmax=4, cmap=cmocean.cm.haline)
 
 # 4. Change in N
 N_delta = N_future - N_present
-dNpc = ax4.pcolormesh(bmx, bmy, N_delta/1e6, vmin=-1, vmax=1, cmap=cmocean.cm.diff)
+cnorm = colors.TwoSlopeNorm(vcenter=0, vmin=-1, vmax=0.5)
+dNpc = ax4.pcolormesh(bmx, bmy, N_delta/1e6, norm=cnorm, cmap=cmocean.cm.diff)
 
 deltacbar = fig.colorbar(dNpc, cax=cax3, extend='both')
 deltacbar.set_label(r'$\Delta N$ (MPa)')
 cax3.tick_params(labelsize=8)
+deltacbar.set_ticks([-1, -0.75, -0.5, -0.25, 0, 0.25, 0.5])
 
 # Scalebar
 R = Rectangle((xmin, ymin), 500e3, 75e3, facecolor='black')
@@ -103,7 +111,8 @@ ax1.text(xmin + 250e3, ymin + 75e3, '500 km',
     ha='center', va='bottom', fontsize=8)
 
 axs = np.array([[ax1, ax2], [ax3, ax4]])
-for ax in axs.flat:
+alphabet = ['a', 'b', 'c', 'd']
+for i,ax in enumerate(axs.flat):
     ax.set_aspect('equal')
     ax.set_xlim([xmin, xmax])
     ax.set_ylim([ymin, ymax])
@@ -111,5 +120,7 @@ for ax in axs.flat:
     ax.spines[['left', 'right', 'bottom', 'top']].set_visible(False)
     ax.set_xticks([])
     ax.set_yticks([])
+    ax.text(0.05, 0.9, alphabet[i], transform=ax.transAxes,
+        fontweight='bold')
 
 fig.savefig('figures/map_delta.png', dpi=400)

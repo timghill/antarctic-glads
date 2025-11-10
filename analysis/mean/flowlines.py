@@ -2,14 +2,14 @@ import numpy as np
 from matplotlib import pyplot as plt
 from scipy import interpolate
 
-basins = ['G-H', 'G-H', 'C-Cp', 'B-C', 'Jpp-K', 'Cp-D']
-linenumbers = [0, 1, 0, 0, 0, 0]
+basins = ['G-H', 'G-H', 'C-Cp', 'B-C', 'Cp-D']
+linenumbers = [0, 1, 0, 0, 0]
 
 colors = ['#89b6bc', '#0d7d87', '#ff5a5e', '#c31e23']
 
-labels = ['Thwaites', 'PIG', 'Denman', 'Lambert', 'Recovery', 'Totten']
+labels = ['Thwaites', 'PIG', 'Denman', 'Lambert', 'Totten']
 
-fig2, axs = plt.subplots(figsize=(12, 12), ncols=3, nrows=6, sharex=True)
+fig2, axs = plt.subplots(figsize=(12, 10), ncols=3, nrows=5, sharex=True)
 
 N = len(basins)
 for p in range(N):
@@ -61,18 +61,19 @@ for p in range(N):
     f_interp_glads = interpolate.griddata((mesh['x'][levelset>0], mesh['y'][levelset>0]), f_glads, (xx, yy), method='linear')
 
     if is_iceflow:
+        method = 'linear'
         C_interp_glads = interpolate.griddata((mesh['x'][levelset>0], mesh['y'][levelset>0]), C_glads[levelset>0], (xx, yy), method='linear')
         C_interp_RF = interpolate.griddata((mesh['x'][levelset>0], mesh['y'][levelset>0]), C_RF[levelset>0], (xx, yy), method='linear')
 
-        u_interp_glads_glads = interpolate.griddata((mesh['x'][levelset>0], mesh['y'][levelset>0]), u_glads_glads[levelset>0], (xx, yy), method='linear')
-        u_interp_rf_rf = interpolate.griddata((mesh['x'][levelset>0], mesh['y'][levelset>0]), u_rf_rf[levelset>0], (xx, yy), method='linear')
-        u_interp_glads_rf = interpolate.griddata((mesh['x'][levelset>0], mesh['y'][levelset>0]), u_glads_rf[levelset>0], (xx, yy), method='linear')
-        u_interp_glads_cv = interpolate.griddata((mesh['x'][levelset>0], mesh['y'][levelset>0]), u_glads_cv[levelset>0], (xx, yy), method='linear')
+        u_interp_glads_glads = interpolate.griddata((mesh['x'][levelset>0], mesh['y'][levelset>0]), u_glads_glads[levelset>0], (xx, yy), method=method)
+        u_interp_rf_rf = interpolate.griddata((mesh['x'][levelset>0], mesh['y'][levelset>0]), u_rf_rf[levelset>0], (xx, yy), method=method)
+        u_interp_glads_rf = interpolate.griddata((mesh['x'][levelset>0], mesh['y'][levelset>0]), u_glads_rf[levelset>0], (xx, yy), method=method)
+        u_interp_glads_cv = interpolate.griddata((mesh['x'][levelset>0], mesh['y'][levelset>0]), u_glads_cv[levelset>0], (xx, yy), method=method)
         # u_interp_rf_glads = interpolate.griddata((mesh['x'][levelset>0], mesh['y'][levelset>0]), u_rf_glads[levelset>0], (xx, yy), method='linear')
-        u_interp_glads_poc = interpolate.griddata((mesh['x'][levelset>0], mesh['y'][levelset>0]), u_glads_poc[levelset>0], (xx, yy), method='linear')
+        u_interp_glads_poc = interpolate.griddata((mesh['x'][levelset>0], mesh['y'][levelset>0]), u_glads_poc[levelset>0], (xx, yy), method=method)
         # u_interp_rf_poc = interpolate.griddata((mesh['x'][levelset>0], mesh['y'][levelset>0]), u_rf_poc[levelset>0], (xx, yy), method='linear')
         # u_interp_poc = interpolate.griddata((mesh['x'][levelset>0], mesh['y'][levelset>0]), u_poc[levelset>0], (xx, yy), method='linear')
-        vv_interp = interpolate.griddata((mesh['x'][levelset>0], mesh['y'][levelset>0]), vv[levelset>0], (xx, yy), method='linear')
+        vv_interp = interpolate.griddata((mesh['x'][levelset>0], mesh['y'][levelset>0]), vv[levelset>0], (xx, yy), method='nearest')
         vv_interp[vv_interp<10] = np.nan
 
     fig,ax1 = plt.subplots()

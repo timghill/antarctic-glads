@@ -14,7 +14,7 @@ import xarray as xr
 import zarr as zr
 from scipy.interpolate import griddata
 
-stride = 1
+stride = 4
 
 # def _gldist(mesh, bed, surface):
 def _gldist(xx, yy, mask, bed, surface):
@@ -88,6 +88,16 @@ def _basal_melt(xx, yy):
 
     # np.save('basal_melt_mali.npy', basalmeltMesh)
     return basalmeltMesh
+
+def _slope(z):
+    dx = stride*500
+    dy = stride*500
+    dzdx = np.nan*np.zeros(z.shape, dtype=z.dtype)
+    dzdy = np.nan*np.zeros(z.shape, dtype=z.dtype)
+    dzdx[1:-1, 1:-1] = (z[1:-1, 2:] - z[1:-1, :-2])/dx
+    dzdy[1:-1, 1:-1] = (z[2:, 1:-1] - z[:-2, 1:-1])/dy
+    dz = np.sqrt(dzdx**2 + dzdy**2).astype(np.float32)
+    return dz
     
 
 def get_features(bedmachine):
@@ -106,14 +116,16 @@ def get_features(bedmachine):
     mask = bm['mask'][::stride, ::stride].values
     mask[mask>3] = 2
 
+    print('dx:', x[1] - x[0])
+
     # Store all features in dictionary features
     features = {}
 
     # Surface, bed and thickness
     print('\tSurface, bed and thickness...', end=' ', flush=True)
-    bed = bm['bed'][::stride, ::stride].values
-    surface = bm['surface'][::stride, ::stride].values
-    thick = bm['thickness'][::stride, ::stride].values
+    bed = bm['bed'][::stride, ::stride].values.astype(np.float32)
+    surface = bm['surface'][::stride, ::stride].values.astype(np.float32)
+    thick = bm['thickness'][::stride, ::stride].values.astype(np.float32)
     print('done')
 
     levelset = np.zeros(mask.shape, dtype=int)
@@ -126,10 +138,13 @@ def get_features(bedmachine):
     features['bed'] = bed
     features['surface'] = surface
     features['thickness'] = thick
+
+    features['bed_slope'] = _slope(bed)
+    features['surface_slope'] = _slope(surface)
     
     # Grounding line distance
     print('\tGrounding line distance...', end=' ', flush=True)
-    features['grounding_line_distance'] = _gldist(xx, yy, mask, bed, surface)
+    features['grounding_line_distance'] = _gldist(xx, yy, mask, bed, surface).astype(np.float32)
     print('done')
 
     # Local basal melt rate
@@ -137,26 +152,27 @@ def get_features(bedmachine):
     # basal_melt = np.load(
     #     os.path.join(basin_dir, 'data/lanl-mali/basal_melt_mali.npy')
     # )
-    features['basal_melt'] = np.log10(_basal_melt(xx, yy))
+    features['basal_melt'] = np.log10(_basal_melt(xx, yy)).astype(np.float32)
     print('basal_melt:', features['basal_melt'].shape)
     features['basal_melt'][levelset==0] = np.nan
     print('done')
 
     # Hydraulic potential
-    rho_ice = 910
+    rho_ice = 917
     rho_freshwater = 1000
     g = 9.81
     shreve_potential = rho_freshwater*g*bed + rho_ice*g*thick
-    features['potential'] = shreve_potential
+    features['potential'] = shreve_potential.astype(np.float32)
+    features['potential_slope'] = _slope(features['potential'])
 
     return features
 
 
 def get_future_features(bedmachine, year):
-    stride = 4
     bm = xr.open_dataset(bedmachine)
     x = bm['x'][::stride].values
     y = bm['y'][::stride].values
+    print('dx:', x[1] - x[0])
     xx, yy = np.meshgrid(x, y)
     mask = bm['mask'][::stride, ::stride].values
     mask[mask>3] = 2
@@ -208,13 +224,15 @@ def get_future_features(bedmachine, year):
     thick[levelset<1] = np.nan
 
     # NOTE this doesn't do floating ice properly -- but we don't have to here
-    features['bed'] = bed
-    features['surface'] = surface
-    features['thickness'] = thick
+    features['bed'] = bed.astype(np.float32)
+    features['surface'] = surface.astype(np.float32)
+    features['thickness'] = thick.astype(np.float32)
+    features['bed_slope'] = _slope(bed)
+    features['surface_slope'] = _slope(surface)
     
     # Grounding line distance
     print('\tGrounding line distance...', end=' ', flush=True)
-    features['grounding_line_distance'] = _gldist(xx, yy, mask, bed, surface)
+    features['grounding_line_distance'] = _gldist(xx, yy, mask, bed, surface).astype(np.float32)
     print('done')
 
     # Local basal melt rate
@@ -222,27 +240,27 @@ def get_future_features(bedmachine, year):
     # basal_melt = np.load(
     #     os.path.join(basin_dir, 'data/lanl-mali/basal_melt_mali.npy')
     # )
-    features['basal_melt'] = np.log10(_basal_melt(xx, yy))
+    features['basal_melt'] = np.log10(_basal_melt(xx, yy)).astype(np.float32)
     print('basal_melt:', features['basal_melt'].shape)
     features['basal_melt'][levelset==0] = np.nan
     print('done')
 
     # Hydraulic potential
-    rho_ice = 910
+    rho_ice = 917
     rho_freshwater = 1000
     g = 9.81
     shreve_potential = rho_freshwater*g*bed + rho_ice*g*thick
-    features['potential'] = shreve_potential
+    features['potential'] = shreve_potential.astype(np.float32)
+    features['potential_slope'] = _slope(features['potential'])
 
     return features
 
 def save_all_features(bedmachine, year):
     basin = 'AIS'
-    # for basin in basins:
-    # features = get_features(bedmachine)
-    # basinfile = f'features_{basin}.pkl'
-    # with open(basinfile, 'wb') as basin_pkl:
-    #     pickle.dump(features, basin_pkl)
+    features = get_features(bedmachine)
+    basinfile = f'features_{basin}.pkl'
+    with open(basinfile, 'wb') as basin_pkl:
+        pickle.dump(features, basin_pkl)
 
     future_features = get_future_features(bedmachine, year)
     basinfile = f'features_{basin}_{year}.pkl'

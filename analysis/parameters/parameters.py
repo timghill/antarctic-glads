@@ -360,6 +360,7 @@ def parabasinCV(basins, feature_keys, nPerBasin=100, field='ff', k=1):
         N_glads = rhoi*g*thick[levelset>0,None]*(1 - testData.Yphys)
         N_RF = rhoi*g*thick[levelset>0,None]*(1 - ypredphys)
         np.save(f'data/CV_{basin}_f_rf.npy', ypredphys)
+        np.save(f'data/CV_{basin}_f_glads.npy', testData.Yphys)
         np.save(f'data/CV_{basin}_N_rf.npy', N_RF)
         np.save(f'data/CV_{basin}_N_glads', N_glads)
         istart += testData.X.shape[0]

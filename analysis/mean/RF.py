@@ -4,6 +4,7 @@ import pickle
 import time
 
 import numpy as np
+import math
 
 # import scipy.linalg
 from matplotlib import pyplot as plt
@@ -271,10 +272,121 @@ def crossVal(basins, feature_keys, nPerBasin=1000, index=None):
             ax.set_aspect('equal')
         fig.savefig(f'figures/CV_{testBasin}_gridded.png', dpi=400)
 
+def basinSensitivity(basins, feature_keys, nPerBasin, index=None):
+    print(basins)
+    rfData = RFData(basins, feature_keys, index=index)
+    rfData.normalizeX(scale=None)
+    rfData.normalizeY(scale=None)
+    nbasins = len(basins)
+    R2_ff= np.zeros((nbasins, nbasins))
+    R2_N = np.zeros((nbasins, nbasins))
+    for i in range(nbasins):
+    # for i in range(1):
+        # trainBasins = basins[:i] + basins[i+1:]
+        trainBasins = basins.copy()
+        trainBasins.remove(basins[i])
+        testBasin = basins[i]
+        print(testBasin)
+        testData = RFData([testBasin], feature_keys, index=index)
+        testData.normalizeX(scale=rfData.Xscale)
+        testData.normalizeY(scale=rfData.Yscale)
+        for j in range(nbasins):
+            cvBasins = trainBasins.copy()
+            if j!=i:
+                cvBasins.remove(basins[j])
+            print(cvBasins)
 
-def predictContinent(rfData, rfRegr, feature_keys):
-    stride = 10
-    AISdata = AISData(feature_keys, stride=stride)
+            cvData, cvRegr = trainRF(cvBasins, feature_keys, 
+                nPerBasin=nPerBasin, Xscale=rfData.Xscale, Yscale=rfData.Yscale, index=index)
+            mesh = np.load(f'../../issm/{testBasin}/data/geom/mesh.npy', allow_pickle=True)
+            levelset = np.load(f'../../issm/{testBasin}/data/geom/ocean_levelset.npy')
+
+            mask = np.logical_and(testData.Yphys>=0, testData.Yphys<=1)
+
+            Zhat = cvRegr.predict(testData.X)
+            mu,sd = rfData.Yscale
+            Yhat = mu + sd*Zhat
+
+            R2_ff[j,i] = 1 - np.nanvar(Yhat[mask]-testData.Yphys[mask])/np.nanvar(testData.Yphys[mask])
+                
+
+            # Convert to effective pressure
+            thick = np.load(f'../../issm/{testBasin}/data/geom/thick.npy')
+            rhoice = 917.0
+            g = 9.81    # m.s-2
+            pice = rhoice*g*thick
+            N_glads = pice[levelset>0]*(1-testData.Yphys)
+            N_rf = pice[levelset>0]*(1 - Yhat)
+            R2_N[j,i] = 1 - np.nanvar(N_rf[mask] - N_glads[mask])/np.nanvar(N_glads[mask])
+
+    np.save('data/basin_sensitivity_R2_ff.npy', R2_ff)
+    np.save('data/basin_sensitivity_R2_N.npy', R2_N)
+    
+
+def factorialBasinSensitivity(basins, feature_keys, nPerBasin, index=None, samples=10):
+    print(basins)
+    rfData = RFData(basins, feature_keys, index=index)
+    rfData.normalizeX(scale=None)
+    rfData.normalizeY(scale=None)
+    nbasins = len(basins)
+    R2_ff= np.zeros((nbasins, nbasins))
+    R2_N = np.zeros((nbasins, nbasins))
+    sizes = np.arange(1, nbasins)
+    R2_ff = np.zeros((len(sizes), nbasins))
+    R2_N  = np.zeros((len(sizes), nbasins))
+    for i in range(nbasins):
+    # for i in range(1):
+        # trainBasins = basins[:i] + basins[i+1:]
+        trainBasins = basins.copy()
+        trainBasins.remove(basins[i])
+        testBasin = basins[i]
+        print(testBasin)
+        testData = RFData([testBasin], feature_keys, index=index)
+        testData.normalizeX(scale=rfData.Xscale)
+        testData.normalizeY(scale=rfData.Yscale)
+
+        for j,size in enumerate(sizes):
+            nck = int(math.factorial(nbasins-1)/math.factorial(size)/math.factorial(nbasins-1 - size))
+            print(nck)
+            for k in range(np.minimum(int(nck*1.5), samples)):
+                r2_ff = []
+                r2_N = []
+                sampleBasins = np.random.choice(trainBasins, size=size, replace=False)
+                print(sampleBasins)
+
+
+                cvData, cvRegr = trainRF(sampleBasins, feature_keys, 
+                    nPerBasin=nPerBasin, Xscale=rfData.Xscale, Yscale=rfData.Yscale, index=index)
+                mesh = np.load(f'../../issm/{testBasin}/data/geom/mesh.npy', allow_pickle=True)
+                levelset = np.load(f'../../issm/{testBasin}/data/geom/ocean_levelset.npy')
+
+                mask = np.logical_and(testData.Yphys>=0, testData.Yphys<=1)
+
+                Zhat = cvRegr.predict(testData.X)
+                mu,sd = rfData.Yscale
+                Yhat = mu + sd*Zhat
+
+                r2_ff.append(1 - np.nanvar(Yhat[mask]-testData.Yphys[mask])/np.nanvar(testData.Yphys[mask]))
+                    
+                # Convert to effective pressure
+                thick = np.load(f'../../issm/{testBasin}/data/geom/thick.npy')
+                rhoice = 917.0
+                g = 9.81    # m.s-2
+                pice = rhoice*g*thick
+                N_glads = pice[levelset>0]*(1-testData.Yphys)
+                N_rf = pice[levelset>0]*(1 - Yhat)
+                r2_N.append(1 - np.nanvar(N_rf[mask] - N_glads[mask])/np.nanvar(N_glads[mask]))
+
+            R2_ff[j,i] = np.mean(r2_ff)
+            R2_N[j, i] = np.mean(r2_N)
+    np.save('data/basin_sensitivity_factorial_R2_ff.npy', R2_ff)
+    np.save('data/basin_sensitivity_factorial_R2_N.npy', R2_N)
+    
+
+
+def predictContinent(rfData, rfRegr, feature_keys, file='features_AIS.pkl'):
+    stride = 1
+    AISdata = AISData(feature_keys, stride=stride, file=file)
     AISdata.normalizeX(scale=rfData.Xscale)
     XAIS = AISdata.X
     mask = AISdata.mask
@@ -294,20 +406,13 @@ def predictContinent(rfData, rfRegr, feature_keys):
     AISpred[mask] = YhatPhys
     AISpred = np.flipud(AISpred)
 
-    np.save('data/AISpred.npy', AISpred)
+    return AISpred
 
-    fig,ax = plt.subplots()
-    pc = ax.pcolormesh(AISpred, vmin=0.5, vmax=1.0, cmap=cmocean.cm.dense)
-    ax.set_aspect('equal')
-    fig.colorbar(pc, label='Fraction of overburden')
-    fig.savefig('figures/AISpred.png', dpi=400)
-
-
-    fig,ax = plt.subplots()
-    pc = ax.pcolormesh(AISpred, vmin=0.8, vmax=1.05, cmap=cmocean.cm.dense)
-    ax.set_aspect('equal')
-    fig.colorbar(pc, label='Fraction of overburden')
-    fig.savefig('figures/AISpredSE.png', dpi=400)
+    # fig,ax = plt.subplots()
+    # pc = ax.pcolormesh(AISpred, vmin=0.5, vmax=1.0, cmap=cmocean.cm.dense)
+    # ax.set_aspect('equal')
+    # fig.colorbar(pc, label='Fraction of overburden')
+    # fig.savefig('figures/AISpred.png', dpi=400)
     
 def predictBasins(rfData, rfRegr, feature_keys, basins):
     rhow = 1023 # kg.m-3, ISSM default seawater
@@ -658,9 +763,9 @@ if __name__=='__main__':
 
     index = None
 
-    rfData, regr = trainRF(basins, features, nPerBasin=10000, feature_importance=False, index=index)
-    with open('rf.pkl', 'wb') as rfout:
-        pickle.dump(regr, rfout)
+    # rfData, regr = trainRF(basins, features, nPerBasin=10000, feature_importance=False, index=index)
+    # with open('rf.pkl', 'wb') as rfout:
+    #     pickle.dump(regr, rfout)
     with open('rf.pkl', 'rb') as rfin:
         regr = pickle.load(rfin)
     rfData = RFData(basins, features, index=index)
@@ -680,6 +785,12 @@ if __name__=='__main__':
     # print('feature_importances_:', regr.feature_importances_)
 
     # crossVal(basins, features, nPerBasin=10000, index=index)
-    # predictContinent(rfData, regr, features)
+    # AISfuture = predictContinent(rfData, regr, features, file='features_AIS_2300.pkl')
+    # AISpresent = predictContinent(rfData, regr, features, file='features_AIS.pkl')
+    # np.save('data/AISpred.npy', AISpresent)
+    # np.save('data/AISpred2300.npy', AISfuture)
+    # predictFutureContinent(rfData, regr, features)
 
     # clustering(basins, features)
+
+    # factorialBasinSensitivity(basins, features, nPerBasin=2000, index=index)

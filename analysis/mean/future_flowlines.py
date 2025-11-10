@@ -6,7 +6,7 @@ basins = ['G-H', 'G-H', 'C-Cp', 'B-C', 'Cp-D']
 future = 2050
 template = '{}_{:d}'
 linenumbers = [0, 1, 0, 0, 0]
-futureruns = [2,3,4]
+futureruns = [0, 1, 2,3,4]
 
 labels = ['Thwaites', 'PIG', 'Denman', 'Lambert', 'Totten']
 
@@ -16,6 +16,7 @@ fig2, axs = plt.subplots(figsize=(12, 10), ncols=3, nrows=5, sharex=True)
 
 N = len(basins)
 for p in range(N):
+# for p in range(2):
 # for p in range(2):
 # for p in [2, 3]:
 # for p in [4]:
@@ -120,8 +121,19 @@ for p in range(N):
         u_interp_rf_future = uinterp(u_rf_future)
         u_interp_poc_present = uinterp(u_poc_present)
         u_interp_poc_future = uinterp(u_poc_future)
+        print('GlaDS-present:', u_interp_glads_present[retreat_mask][0])
+        print('RF-present   :', u_interp_rf_present[retreat_mask][0])
+        print('POC-present  :', u_interp_poc_present[retreat_mask][0])
         if p in futureruns:
             u_interp_glads_future = uinterp(u_glads_future)
+
+            gl_glads = u_interp_glads_future[retreat_mask][0]
+            print('GlaDS-future:', gl_glads)
+        gl_rf = u_interp_rf_future[retreat_mask][0]
+        print('RF-future   :', gl_rf)
+        print('POC-future  :', u_interp_poc_future[retreat_mask][0])
+            
+            
 
         # print('max:', np.max(u_interp_glads_present))
 
