@@ -53,7 +53,7 @@ class RFData:
                 outputs = np.load(f'../../issm/{basin}/glads/{field}.npy')[levelset>0,:]
                 if index is None:
                     meanOutputs = np.nanmean(outputs, axis=1) # Take average over perturbed parameters
-                    print('Computing ensemble mean')
+                    # print('Computing ensemble mean')
                 else:
                     meanOutputs = outputs[:, index]
                     # print('Loading index', index)
@@ -88,12 +88,12 @@ class RFData:
 
 
 class AISData:
-    def __init__(self, featureKeys, stride=4):
-        self.Xphys, self.mask = self.loadFeatures(featureKeys, stride=stride)
+    def __init__(self, featureKeys, stride=1, file='features_AIS.pkl'):
+        self.Xphys, self.mask = self.loadFeatures(featureKeys, file, stride=stride)
         self.features = featureKeys
         self.stride = stride
     
-    def loadFeatures(self, featureKeys, file='features_AIS.pkl', stride=1):
+    def loadFeatures(self, featureKeys, file, stride=1):
         feature_matrix = []
         features = np.load(file, allow_pickle=True)
         mask = ~np.isnan(features['bed'][::stride, ::stride])

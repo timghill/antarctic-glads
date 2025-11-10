@@ -144,6 +144,7 @@ def run_friction_inversion(effective_pressure, initialization=None,
     md.inversion.cost_functions_coefficients[:,0]=coefficients[0]
     md.inversion.cost_functions_coefficients[:,1]=coefficients[1]
     md.inversion.cost_functions_coefficients[md.inversion.vel_obs<0.1, 0:2] = 0
+    md.inversion.cost_functions_coefficients[md.mask.ocean_levelset<0, 0:2] = 0
     md.inversion.cost_functions_coefficients[:,2]=coefficients[2]
 
     # Controls

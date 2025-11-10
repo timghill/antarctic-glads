@@ -1,3 +1,4 @@
+import os
 import numpy as np
 
 from matplotlib import pyplot as plt
@@ -89,6 +90,11 @@ def main():
 
     axs[0,1].set_visible(False)
     axs[0,3].set_visible(False)
+
+    if os.path.exists('../data/geom/flowline_00.npy'):
+        ss,xx,yy = np.load('../data/geom/flowline_00.npy')
+        for ax in (axs[1,0], axs[2,0], axs[1,2], axs[2,2]):
+            ax.plot(xx, yy, color='cyan', linewidth=0.75)
 
     fig.savefig('compare_speed_nonlinear.png', dpi=400)
 
