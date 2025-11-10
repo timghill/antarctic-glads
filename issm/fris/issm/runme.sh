@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --time=0-00:60
+#SBATCH --time=0-02:00
 #SBATCH --account=def-gflowers
 #SBATCH --mem=8G
 #SBATCH --job-name=inversion
@@ -8,6 +8,6 @@
 
 source ~/SFU-code/antarctic-glads/venv/bin/activate
 
-python -u -m utils.issm.run_friction_inversion
+python run_glads_inverse.py
 
 python plot.py

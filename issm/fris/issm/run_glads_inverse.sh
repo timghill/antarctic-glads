@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --time=0-01:00
+#SBATCH --time=0-02:00
 #SBATCH --account=def-gflowers
 #SBATCH --mem=8G
 #SBATCH --job-name=fris-inverse
@@ -8,4 +8,4 @@
 
 source ~/SFU-code/antarctic-glads/venv/bin/activate
 
-python -u -m run_glads_inverse
+python -u run_glads_inverse.py

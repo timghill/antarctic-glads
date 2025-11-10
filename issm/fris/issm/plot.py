@@ -5,16 +5,21 @@ from matplotlib.tri import Triangulation
 
 
 mesh = np.load('../data/geom/mesh.npy', allow_pickle=True)
+levelset = np.load('../data/geom/ocean_levelset.npy')
 mtri = Triangulation(mesh['x'], mesh['y'], mesh['elements']-1)
 
-coef = np.load('friction_coefficient.npy').squeeze()
+levelset = np.load('../data/geom/ocean_levelset.npy')
+
+coef = np.load('C_glads.npy').squeeze()
 fig,ax = plt.subplots()
-pc = ax.tripcolor(mtri, coef, vmin=0)
+pc = ax.tripcolor(mtri, coef, vmin=0, vmax=500)
 ax.set_title('friction coef')
+ax.set_aspect('equal')
+ax.tricontour(mtri, levelset, levels=(0,), colors=('w',))
 fig.colorbar(pc)
 fig.savefig('friction_coefficient.png', dpi=400)
 
-model_vel = np.load('model_vel.npy').squeeze()
+model_vel = np.load('vel.npy').squeeze()
 
 # obs_vel = np.load('obs_vel.npy').squeeze()
 vx = np.load('../data/geom/vx.npy')
@@ -35,6 +40,7 @@ for ax in axs:
     ax.spines[['left', 'right', 'top', 'bottom']].set_visible(False)
     ax.set_xticks([])
     ax.set_yticks([])
+    ax.tricontour(mtri, levelset, levels=(0,), colors=('k',))
 
 fig.subplots_adjust(left=0.1, bottom=0.05, right=0.9, top=0.9, wspace=0.05, hspace=0.1)
 
@@ -44,8 +50,8 @@ cb1 = fig.colorbar(abs_pc, ax=(axs[:2]), label='log$_10$ speed (m/a)')
 cb2 = fig.colorbar(diff_pc, ax=(axs[2:]), label='Speed error (m/a)')
 
 axs[0].set_title('Observed')
-axs[1].set_title('Modelled')
-axs[2].set_title('Obs - model')
+axs[1].set_title('Model')
+axs[2].set_title('Model - Observed')
 
 fig.savefig('velocitySolution.png', dpi=400)
 

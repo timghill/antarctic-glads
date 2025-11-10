@@ -1,6 +1,6 @@
 #!/bin/bash
-#SBATCH --job-name="gr-train"
-#SBATCH --time=07-0:00
+#SBATCH --job-name="G-H_fine"
+#SBATCH --time=04-0:00
 #SBATCH --mem=4G
 #SBATCH --account=def-gflowers
 #SBATCH --mail-user=tha111@sfu.ca
