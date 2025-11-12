@@ -23,7 +23,7 @@ class RFData:
         feature_list = None
         for basin in basins:
             basin_matrix = None
-            features = np.load(f'features_{basin}.pkl', allow_pickle=True)
+            features = np.load(f'../features/features_{basin}.pkl', allow_pickle=True)
             for key in featureKeys:
                 if basin_matrix is None:
                     basin_matrix = features[key][:,None]
@@ -113,3 +113,77 @@ class AISData:
         self.Xscale = scale
         return X, scale
 
+
+class RFDataPara:
+    def __init__(self, basins, featureKeys, field='ff'):
+        self.field = field
+        self.features = featureKeys
+        self.Xphys = self.loadFeatures(basins, featureKeys)
+        self.loadParameters()
+
+        self.Yphys = self.loadModelOutputs(basins, field=field)
+
+    def loadFeatures(self, basins, featureKeys):
+        feature_list = None
+        for basin in basins:
+            basin_matrix = None
+            features = np.load(f'../features/features_{basin}.pkl', allow_pickle=True)
+            for key in featureKeys:
+                if basin_matrix is None:
+                    basin_matrix = features[key][:,None]
+                else:
+                    basin_matrix = np.hstack((basin_matrix, features[key][:,None]))            
+            
+            if feature_list is None:
+                feature_list = basin_matrix.copy()
+            else:
+                feature_list = np.vstack((feature_list, basin_matrix))
+        return feature_list.astype(np.float32)
+    
+    def loadParameters(self):
+        Thetaphys = np.loadtxt('../../issm/theta_physical.csv',
+            delimiter=',', skiprows=1)
+        Theta = np.loadtxt('../../issm/theta_standard.csv',
+            delimiter=',', skiprows=1)
+        names = np.loadtxt('../../issm/theta_physical.csv',
+            delimiter=',', dtype=str, max_rows=1)
+        self.Thetaphys = Thetaphys.astype(np.float32)
+        self.Theta = Theta.astype(np.float32)
+        self.Thetanames = names
+        return (Thetaphys.astype(np.float32), Theta.astype(np.float32), names)
+        
+    def loadModelOutputs(self, basins, field='ff'):
+        modelOutputs = []
+        mask = []
+        for basin in basins:
+            # Load levelset to find where ice is grounded
+            levelset = np.load(
+                os.path.join(f'../../issm/{basin}',
+                    'data/geom/ocean_levelset.npy')
+            )
+            # Add model outputs to list
+            outputs = np.load(f'../../issm/{basin}/glads/{field}.npy')[levelset>0,:]
+            modelOutputs.extend(outputs) 
+        return np.array(modelOutputs).astype(np.float32)
+    
+    def normalizeX(self, scale=None):
+        if scale is None:
+            xmin = np.min(self.Xphys, axis=0).astype(np.float32)
+            xmax = np.max(self.Xphys, axis=0).astype(np.float32)
+            scale = (xmin, xmax)
+        xmin, xmax = scale
+        X = (self.Xphys - xmin)/(xmax-xmin)
+        self.X = X.astype(np.float32)
+        self.Xscale = scale
+        return X.astype(np.float32), scale
+    
+    def normalizeY(self, scale=None):
+        if scale is None:
+            mu = np.mean(self.Yphys).astype(np.float32)
+            sd = np.std(self.Yphys).astype(np.float32)
+            scale = (mu, sd)
+        mu,sd = scale
+        Y = (self.Yphys - mu)/sd
+        self.Y = Y.astype(np.float32)
+        self.Yscale = scale
+        return Y.astype(np.float32), scale

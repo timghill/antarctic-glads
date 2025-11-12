@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --account=def-gflowers
 #SBATCH --time=0-01:00
-#SBATCH --mem=16G
+#SBATCH --mem=8G
 #SBATCH --job-name='features'
 #SBATCH --ntasks=1
 #SBATCH --output=get_features.out

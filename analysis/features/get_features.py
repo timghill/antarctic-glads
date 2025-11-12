@@ -8,36 +8,32 @@ from matplotlib import pyplot as plt
 from matplotlib.tri import Triangulation
 import cmocean
 from scipy import sparse
+from scipy import interpolate
 
-def _gldist(mesh, mask, bed, surface):
+def _gldist(mesh, bed, surface, levelset):
     """Euclidean distance from mesh nodes to grounding line
     """
+    # ISSUE TODO: this assumes that the grounding line is on the boundary
     # bz = surface[mesh['vertexonboundary']==1]
     # rhow = 1028
     # rhoi = 910
-    # h_buoyancy = -(rhow-rhoi)/rhoi * bz
-    # h_boundary = surface[mesh['vertexonboundary']==1]
-    # gl = np.where(h_boundary<=(h_buoyancy + 200))[0][::4]
+    # h_buoyancy = (rhow-rhoi)/rhoi * surface
 
-    # glx = mesh['x'][gl,None]
-    # gly = mesh['y'][gl,None]
+    # gl = np.where(levelset<=0)[0]
 
-    # dx = glx - mesh['x']
-    # dy = gly - mesh['y']
+    xFloating = mesh['x'][levelset<=0,None]
+    yFloating = mesh['y'][levelset<=0,None]
+
+    xGrounded = mesh['x'][levelset>=1]
+    yGrounded = mesh['y'][levelset>=1]
+
+    # print('Floating:', xFloating.shape)
+    # print('Grounded:', xGrounded.shape)
+
+    dx = xFloating - xGrounded
+    dy = yFloating - yGrounded
+    # print('dx:', dx.shape)
     
-    # dd = np.sqrt(dx**2 + dy**2)
-    # ddmin = np.min(dd, axis=0)
-    # return ddmin
-
-    mask[mask>3] = 2
-    xFloating = mesh['x'][mask==3].astype(np.float32)
-    yFloating = mesh['y'][mask==3].astype(np.float32)
-
-    xGrounded = mesh['x'][mask==2].astype(np.float32)
-    yGrounded = mesh['y'][mask==2].astype(np.float32)
-
-    print('Floating:', xFloating.shape)
-    print('Grounded:', xGrounded.shape)
     dd = np.sqrt(dx**2 + dy**2)
     ddmin = np.min(dd, axis=0)
     return ddmin
@@ -205,6 +201,62 @@ def _binned_flow_accumulation(mesh, phi, melt):
     for k in groundedice:
         acc[k] = np.sum((mdot*area)[phiel>phi[k]])
     return acc
+
+def _gradient(mesh, z):
+    conn = mesh['elements']-1
+    xel = np.mean(mesh['x'][conn], axis=1)
+    yel = np.mean(mesh['y'][conn], axis=1)
+    zel = np.mean(z[conn], axis=1)
+    grad = np.zeros((mesh['numberofelements'], 2))
+    # for i in range(mesh['numberofelements']):
+    #     z_neighbour = z[conn][i]
+    #     dx = mesh['x'][conn][i] - xel[i]
+    #     dy = mesh['y'][conn][i] - yel[i]
+    #     gx = np.mean((zel[i]-z_neighbour)/dx)
+    #     gy = np.mean((zel[i]-z_neighbour)/dy)
+    #     grad[i,0] = gx
+    #     grad[i,1] = gy
+    
+    # dx = mesh['x'][conn] - xel[:,None]
+    # dy = mesh['y'][conn] - yel[:,None]
+    # dz = z[conn] - zel[:,None]
+    # # dz[dx*dy < 10] = np.nan
+    # dz[dx<10] = np.nan
+    # dz[dy<10] = np.nan
+    # grad[:,0] = np.nanmean((dz/dx), axis=1)
+    # grad[:,1] = np.nanmean((dz/dy), axis=1)
+
+    # Cross product to compute slope
+    P0x = mesh['x'][conn][:, 0]
+    P0y = mesh['y'][conn][:, 0]
+    P0z = z[conn][:, 0]
+    dx1 = mesh['x'][conn][:, 1] - P0x
+    dy1 = mesh['y'][conn][:, 1] - P0y
+    dz1 = z[conn][:, 1] - P0z
+    dx2 = mesh['x'][conn][:, 2] - P0x
+    dy2 = mesh['y'][conn][:, 2] - P0y
+    dz2 = z[conn][:, 2] - P0z
+
+    a = (dy1*dz2) - (dz1*dy2)
+    b = (dz1*dx2) - (dx1*dz2)
+    c = (dx1*dy2) - (dx2*dy1)
+
+    grad[:, 0] = -a/c
+    grad[:, 1] = -b/c
+
+
+    return grad
+
+
+
+def _slope(mesh, z):
+    grad = _gradient(mesh, z)
+    elslope = np.sqrt(np.sum(grad**2, axis=1))
+    xel = np.mean(mesh['x'][mesh['elements']-1], axis=1)
+    yel = np.mean(mesh['y'][mesh['elements']-1], axis=1)
+    nodeslope = interpolate.griddata((xel, yel), elslope, (mesh['x'], mesh['y']))
+
+    return nodeslope
     
 
 def get_features(basin):
@@ -233,7 +285,7 @@ def get_features(basin):
     
     # Grounding line distance
     print('\tGrounding line distance...', end=' ', flush=True)
-    features['grounding_line_distance'] = _gldist(mesh, bed, surface)[levelset>0]
+    features['grounding_line_distance'] = _gldist(mesh, bed, surface, levelset)
     print('done')
 
     # Local basal melt rate
@@ -251,17 +303,26 @@ def get_features(basin):
     shreve_potential = rho_freshwater*g*bed + rho_ice*g*thick
     features['potential'] = shreve_potential[levelset>0]
 
-    # Flow accumulation
-    print('\tFlow accumulation subroutine...', end=' ', flush=True)
-    flowacc = _matrix_flow_accumulation(mesh, shreve_potential, basal_melt, levelset, step=1)
-    features['flow_accumulation'] = flowacc[levelset>0]
-    print('done')
-    # features['flow_accumulation'] = 0*shreve_potential[levelset>0]
+    # # Flow accumulation
+    # print('\tFlow accumulation subroutine...', end=' ', flush=True)
+    # flowacc = _matrix_flow_accumulation(mesh, shreve_potential, basal_melt, levelset, step=1)
+    # features['flow_accumulation'] = flowacc[levelset>0]
+    # print('done')
+    # # features['flow_accumulation'] = 0*shreve_potential[levelset>0]
 
-    print('\tBinned flow accumulation...', end=' ', flush=True)
-    binned_flow = _binned_flow_accumulation(mesh, shreve_potential, basal_melt)
-    features['binned_flow_accumulation'] = binned_flow[levelset>0]
+    # print('\tBinned flow accumulation...', end=' ', flush=True)
+    # binned_flow = _binned_flow_accumulation(mesh, shreve_potential, basal_melt)
+    # features['binned_flow_accumulation'] = binned_flow[levelset>0]
+    # print('done')
+
+    print('\tSlopes...', end=' ', flush=True)
+    surf_slope = _slope(mesh, surface)
+    bed_slope = _slope(mesh, bed)
+    shreve_slope = _slope(mesh, shreve_potential)
     print('done')
+    features['surface_slope'] = surf_slope[levelset>0]
+    features['bed_slope'] = bed_slope[levelset>0]
+    features['potential_slope'] = shreve_slope[levelset>0]
     return features
 
 def save_all_features(basins):
@@ -285,7 +346,7 @@ def plot_features(basins):
 
         mtri = Triangulation(mesh['x'], mesh['y'], mesh['elements']-1)
 
-        fig,axs = plt.subplots(nrows=2, ncols=4, figsize=(10, 8))
+        fig,axs = plt.subplots(nrows=2, ncols=5, figsize=(12, 8))
         axf = axs.flat
         bed = np.nan*np.zeros(mesh['numberofvertices'])
         bed[levelset>0] = features['bed']
@@ -333,23 +394,44 @@ def plot_features(basins):
             vmin=0, cmap=cmocean.cm.dense)
         # axf[5].set_title('Shreve potential')
         fig.colorbar(m5, location='top', pad=0, shrink=0.8,
-            label='Shreve potential')
+            label='Shreve potential (Pa)')
 
-        flowacc = np.nan*np.zeros(mesh['numberofvertices'])
-        flowacc[levelset>0] = features['flow_accumulation']
-        m6 = axf[6].tripcolor(mtri, flowacc,
-            vmin=0, vmax=25, cmap=cmocean.cm.thermal)
-        # axf[6].set_title('Flow accumulation')
+        surf_slope = np.nan*np.zeros(mesh['numberofvertices'])
+        surf_slope[levelset>0] = features['surface_slope']
+        m6 = axf[6].tripcolor(mtri, surf_slope,
+            vmin=0, vmax=0.1, cmap=cmocean.cm.speed)
         fig.colorbar(m6, location='top', pad=0, shrink=0.8,
-            label='Flow accumulation (m$^3$ s$^{-1}$)')
+            label='Surface slope (-)')
 
-        binacc = np.nan*np.zeros(mesh['numberofvertices'])
-        binacc[levelset>0] = features['binned_flow_accumulation']
-        m6 = axf[7].tripcolor(mtri, binacc,
-            vmin=0, cmap=cmocean.cm.thermal)
-        # axf[6].set_title('Flow accumulation')
-        fig.colorbar(m6, location='top', pad=0, shrink=0.8,
-            label='Binned melt rate (m$^3$ s$^{-1}$)')
+        bed_slope = np.nan*np.zeros(mesh['numberofvertices'])
+        bed_slope[levelset>0] = features['bed_slope']
+        m7 = axf[7].tripcolor(mtri, bed_slope,
+            vmin=0, vmax=0.2, cmap=cmocean.cm.speed)
+        fig.colorbar(m7, location='top', pad=0, shrink=0.8,
+            label='Bed slope (-)')
+
+        shreve_slope = np.nan*np.zeros(mesh['numberofvertices'])
+        shreve_slope[levelset>0] = features['potential_slope']
+        m8 = axf[8].tripcolor(mtri, shreve_slope,
+            vmin=0, vmax=500, cmap=cmocean.cm.speed)
+        fig.colorbar(m8, location='top', pad=0, shrink=0.8,
+            label='Shreve slope (Pa/m)')
+
+        # flowacc = np.nan*np.zeros(mesh['numberofvertices'])
+        # flowacc[levelset>0] = features['flow_accumulation']
+        # m6 = axf[6].tripcolor(mtri, flowacc,
+        #     vmin=0, vmax=25, cmap=cmocean.cm.thermal)
+        # # axf[6].set_title('Flow accumulation')
+        # fig.colorbar(m6, location='top', pad=0, shrink=0.8,
+        #     label='Flow accumulation (m$^3$ s$^{-1}$)')
+
+        # binacc = np.nan*np.zeros(mesh['numberofvertices'])
+        # binacc[levelset>0] = features['binned_flow_accumulation']
+        # m6 = axf[7].tripcolor(mtri, binacc,
+        #     vmin=0, cmap=cmocean.cm.thermal)
+        # # axf[6].set_title('Flow accumulation')
+        # fig.colorbar(m6, location='top', pad=0, shrink=0.8,
+        #     label='Binned melt rate (m$^3$ s$^{-1}$)')
 
         for ax in axf:
             ax.set_aspect('equal')
@@ -365,11 +447,59 @@ if __name__=='__main__':
         # 'G-H',
         # 'F-G',
         # 'Ep-F',
-        'Cp-D',
+        # 'Cp-D',
         # 'C-Cp',
         # 'B-C',
         # 'Jpp-K',
         # 'J-Jpp',
+        # 'G-H_2100'
+        # 'G-H_2050',
+        # 'Cp-D_2300',
+        # 'C-Cp_2300',
+        'B-C_2300',
     ]
     save_all_features(basins)
     plot_features(basins)
+
+    # mesh = np.load('../../issm/G-H/data/geom/mesh.npy', allow_pickle=True)
+    # surface = np.load('../../issm/G-H/data/geom/surface.npy')
+    # bed = np.load('../../issm/G-H/data/geom/bed.npy')
+    # thick = np.load('../../issm/G-H/data/geom/thick.npy')
+    # levelset = np.load('../../issm/G-H/data/geom/ocean_levelset.npy')
+
+    # surface[levelset<1] = np.nan
+    # bed[levelset<1] = np.nan
+    # thick[levelset<1] = np.nan
+
+    # Shreve = 1000*9.81*bed + 910*9.81*thick
+
+    # slopeSurf = _slope(mesh, surface)
+    # slopeBed = _slope(mesh, bed)
+    # slopeThick = _slope(mesh, thick)
+    # slopeShreve = _slope(mesh, Shreve)
+
+    # mtri = Triangulation(mesh['x'], mesh['y'], mesh['elements']-1)
+    # fig,ax = plt.subplots()
+    # pc = ax.tripcolor(mtri, slopeSurf, vmin=0, vmax=0.1)
+    # ax.set_aspect('equal')
+    # fig.colorbar(pc, label='Surface slope (-)')
+    # fig.savefig('slopeSurf.png', dpi=400)
+
+    # mtri = Triangulation(mesh['x'], mesh['y'], mesh['elements']-1)
+    # fig,ax = plt.subplots()
+    # pc = ax.tripcolor(mtri, slopeThick, vmin=0, vmax=0.1)
+    # ax.set_aspect('equal')
+    # fig.colorbar(pc, label='Thickness slope (-)')
+    # fig.savefig('slopeThick.png', dpi=400)
+
+    # fig,ax = plt.subplots()
+    # pc = ax.tripcolor(mtri, slopeBed, vmin=0, vmax=0.25)
+    # ax.set_aspect('equal')
+    # fig.colorbar(pc, label='Bed slope (-)')
+    # fig.savefig('slopeBed.png', dpi=400)
+
+    # fig,ax = plt.subplots()
+    # pc = ax.tripcolor(mtri, slopeShreve, vmin=0, vmax=1000)
+    # ax.set_aspect('equal')
+    # fig.colorbar(pc, label='Shreve potential slope (Pa/m)')
+    # fig.savefig('slopeShreve.png', dpi=400)
