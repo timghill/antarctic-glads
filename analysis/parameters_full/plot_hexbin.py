@@ -255,5 +255,5 @@ if __name__=='__main__':
         # 'J-Jpp', 
         # 'F-G',
     ]
-    plot_error(basins)
+    plot_error(basins, index=14)
 
