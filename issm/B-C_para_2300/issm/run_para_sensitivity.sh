@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --account=def-gflowers
 #SBATCH --job-name=para-sensitivity
-#SBATCH --time=0-01:00
+#SBATCH --time=0-02:00
 #SBATCH --mem=4G
 #SBATCH --output=run_para_sensitivity.out
 

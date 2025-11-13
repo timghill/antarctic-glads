@@ -9,55 +9,63 @@ def main(basin, year):
     present_levelset = np.load(f'../../{basin}/data/geom/ocean_levelset.npy')
     npara = 100
     nrun = 100
-    
-    # Load effective pressure
-    ff = np.load('../glads/ff.npy')
-    rhoi = 917
+
     thick = np.load('../data/geom/thick.npy')
-    g = 9.81
-    pice = rhoi*g*thick[:,None]
-    N_glads_future = pice*(1 - ff)
+    pice = 9.81*917*thick
 
-    thick_present = np.load(f'../../{basin}/data/geom/thick.npy')
-    pice_present = rhoi*g*thick_present[:,None]
+    N_rf_present = np.zeros((len(levelset), npara))
+    N_rf_present[present_levelset>0] = np.load(f'../../../analysis/parameters_full/data/pred_{basin}_N_rf.npy')
+    
+    N_rf_future = np.zeros((len(levelset), npara))
+    N_rf_future[levelset>0] = np.load(f'../../../analysis/parameters_full/data/pred_{basin}_{year}_N_rf.npy')
 
-    ff_present = np.load(f'../../{basin}/glads/ff.npy')
-    N_glads_present = pice_present*(1 - ff_present)
+    N_glads_present = np.zeros((len(levelset), npara))
+    N_glads_present[present_levelset>0] = np.load(f'../../../analysis/parameters_full/data/pred_{basin}_N_glads.npy')
 
-    # N_glads_mean = np.zeros(len(levelset))
-    # N_glads_mean[levelset>0] = np.load(f'../../../analysis/mean/data/pred_{basin}_{year}_N_glads.npy')
+    N_glads_future = np.zeros((len(levelset), npara))
+    N_glads_future[levelset>0] = np.load(f'../../../analysis/parameters_full/data/pred_{basin}_{year}_N_glads.npy')
 
-    N_glads_mean = np.zeros(len(levelset))
-    N_glads_mean[present_levelset>0] = np.load(f'../../../analysis/mean/data/pred_{basin}_N_glads.npy')
+    N_rf_mean = np.mean(N_rf_present, axis=1)
+    N_glads_mean = np.mean(N_glads_present, axis=1)
 
-    print(N_glads_future.shape)
-    # N=0 for floating ice
-    N_glads_future[levelset<0] = 0
-    N_glads_mean[levelset<0] = 0
     # No negative water pressure
-    N_glads_future = np.minimum(N_glads_future, pice)
-    N_glads_present = np.minimum(N_glads_present, pice)
-    N_glads_mean = np.minimum(N_glads_mean, pice.squeeze())
+    N_glads_future = np.minimum(N_glads_future, pice[:,None])
+    N_glads_present = np.minimum(N_glads_present, pice[:,None])
+    N_rf_future = np.minimum(N_rf_future, pice[:,None])
+    N_rf_present = np.minimum(N_rf_present, pice[:,None])
+    N_glads_mean = np.minimum(N_glads_mean, pice)
+    N_rf_mean = np.minimum(N_rf_mean, pice)
+    
     # No zero-effective-pressure
-    N_glads_future = np.maximum(0.01*pice, N_glads_future)
-    N_glads_present = np.maximum(0.01*pice, N_glads_present)
-    N_glads_mean = np.maximum(0.01*pice.squeeze(), N_glads_mean)
+    N_glads_future = np.maximum(0.01*pice[:,None], N_glads_future)
+    N_glads_present = np.maximum(0.01*pice[:,None], N_glads_present)
+    N_rf_future = np.maximum(0.01*pice[:,None], N_rf_future)
+    N_rf_present = np.maximum(0.01*pice[:,None], N_rf_present)
+    N_glads_mean = np.maximum(0.01*pice, N_glads_mean)
+    N_rf_mean = np.maximum(0.01*pice, N_rf_mean)
 
     # Load friction coefficient
     C_glads = np.load(f'../../{basin}/issm/solutions/friction_coefficient_glads_nonlinear.npy').squeeze()
     C_glads[levelset<0] = 0
 
-    uu_calc_C = np.zeros(N_glads_future.shape)
+    C_rf = np.load(f'../../{basin}/issm/solutions/friction_coefficient_RF_nonlinear.npy').squeeze()
+    C_rf[levelset<0] = 0
+
+    uu_glads = np.zeros(N_glads_future.shape)
+    uu_rf = np.zeros(N_rf_future.shape)
     # for i in range(npara):
     for i in range(nrun):
         print('Calculate C, i=', i)
-        Ni_present = N_glads_present[:,i]
-        Ci = np.sqrt( N_glads_mean**(1./5.) / Ni_present**(1./5.) ) * C_glads
+        Ci_glads = np.sqrt( N_glads_mean**(1./5.) / N_glads_present[:,i]**(1./5.) ) * C_glads
+        ui = run_forward(Ci_glads, N_glads_future[:,i]).results.StressbalanceSolution.Vel.squeeze()
+        uu_glads[:,i] = ui
 
-        ui = run_forward(Ci, N_glads_future[:,i]).results.StressbalanceSolution.Vel.squeeze()
-        uu_calc_C[:,i] = ui
+        Ci_rf = np.sqrt( N_rf_mean**(1./5.) / N_rf_present[:,i]**(1./5.) ) * C_rf
+        ui = run_forward(Ci_rf, N_rf_future[:,i]).results.StressbalanceSolution.Vel.squeeze()
+        uu_rf[:,i] = ui
     
-    np.save('solutions/u_glads_para_sensitivity_calc_C.npy', uu_calc_C)
+    np.save('solutions/u_glads_para_sensitivity.npy', uu_glads)
+    np.save('solutions/u_rf_para_sensitivity.npy', uu_rf)
 
 
     # uu_const_C = np.zeros(N_glads_future.shape)

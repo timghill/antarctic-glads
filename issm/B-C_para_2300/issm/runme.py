@@ -40,8 +40,12 @@ def _load_N_fields(basin, year=2300):
     future_levelset = np.load('../data/geom/ocean_levelset.npy')
     present_levelset = np.load(f'../../{basin}/data/geom/ocean_levelset.npy')
     
-    present = basin
-    future = f'{basin}_{year}'
+    present = basin.strip('_para')
+    future = (f'{basin}_{year}')
+    future = future.replace('_para', '')
+
+    print('present:', present)
+    print('future', future)
 
     rhow = 1023
     rhoice = 917
