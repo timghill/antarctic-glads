@@ -1,17 +1,18 @@
-
+import argparse
 import numpy as np
 
 from utils.issm.iceflow import run_forward
 
+rhoice = 917.
+g = 9.81
 
 def main(basin, year):
     levelset = np.load(f'../data/geom/ocean_levelset.npy')
     present_levelset = np.load(f'../../{basin}/data/geom/ocean_levelset.npy')
     npara = 100
-    nrun = 100
 
     thick = np.load('../data/geom/thick.npy')
-    pice = 9.81*917*thick
+    pice = g*rhoice*thick
 
     N_rf_present = np.zeros((len(levelset), npara))
     N_rf_present[present_levelset>0] = np.load(f'../../../analysis/parameters_full/data/pred_{basin}_N_rf.npy')
@@ -45,7 +46,10 @@ def main(basin, year):
     N_rf_mean = np.maximum(0.01*pice, N_rf_mean)
 
     # Load friction coefficient
-    C_glads = np.load(f'../../{basin}/issm/solutions/friction_coefficient_glads_nonlinear.npy').squeeze()
+    try:
+        C_glads = np.load(f'../../{basin}/issm/solutions/friction_coefficient_glads_nonlinear.npy').squeeze()
+    except: 
+        raise IOError(f'Can not find friction coefficient (../../{basin}/issm/solutions/friction_coefficient_glads_nonlinear.npy); must run friction inversions first!')
     C_glads[levelset<0] = 0
 
     C_rf = np.load(f'../../{basin}/issm/solutions/friction_coefficient_RF_nonlinear.npy').squeeze()
@@ -53,8 +57,7 @@ def main(basin, year):
 
     uu_glads = np.zeros(N_glads_future.shape)
     uu_rf = np.zeros(N_rf_future.shape)
-    # for i in range(npara):
-    for i in range(nrun):
+    for i in range(npara):
         print('Calculate C, i=', i)
         Ci_glads = np.sqrt( N_glads_mean**(1./5.) / N_glads_present[:,i]**(1./5.) ) * C_glads
         ui = run_forward(Ci_glads, N_glads_future[:,i]).results.StressbalanceSolution.Vel.squeeze()
@@ -67,19 +70,9 @@ def main(basin, year):
     np.save('solutions/u_glads_para_sensitivity.npy', uu_glads)
     np.save('solutions/u_rf_para_sensitivity.npy', uu_rf)
 
-
-    # uu_const_C = np.zeros(N_glads_future.shape)
-    # # for i in range(npara):
-    # for i in range(nrun):
-    #     print('Constant C, i=', i)
-    #     ui = run_forward(C_glads, N_glads_future[:,i]).results.StressbalanceSolution.Vel.squeeze()
-    #     uu_const_C[:,i] = ui
-    #     print('MAX:', np.quantile(ui, 0.95))
-    # np.save('solutions/u_glads_para_sensitivity_const_C.npy', uu_const_C)
-
-
-
-
-
 if __name__=='__main__':
-    main('B-C', 2300)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('basin')
+    parser.add_argument('year')
+    args = parser.parse_args()
+    main(args.basin, args.year)
