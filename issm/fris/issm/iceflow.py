@@ -320,14 +320,18 @@ if __name__=='__main__':
     levelset = np.load('../data/geom/ocean_levelset.npy')
     N[levelset<0] = 0
 
+    # N = np.zeros(levelset.shape)
+    N = np.load('../glads/glads_N.npy')
     N = np.maximum(N, 0.01*pice)
+    N = np.minimum(N, pice)
+    # N[levelset>0] = np.load('../../../analysis/parameters_full/data/pred_')
 
     print(N.shape)
     print(levelset.shape)
 
-    md = run_friction_inversion(N, coefficients=np.array([1, 1e-3, 1e-9]),
+    md = run_friction_inversion(N, coefficients=np.array([1, 1e-3, 1e-8]),
         initialization=None)
     model_vel = md.results.StressbalanceSolution.Vel
     C = md.friction.coefficient
-    np.save('C.npy', C)
-    np.save('v.npy', model_vel)
+    np.save('C_smooth.npy', C)
+    np.save('v_smooth.npy', model_vel)

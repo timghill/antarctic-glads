@@ -10,16 +10,16 @@ mtri = Triangulation(mesh['x'], mesh['y'], mesh['elements']-1)
 
 levelset = np.load('../data/geom/ocean_levelset.npy')
 
-coef = np.load('C.npy').squeeze()
+coef = np.load('C_glads.npy').squeeze()
 fig,ax = plt.subplots()
 pc = ax.tripcolor(mtri, coef, vmin=0, vmax=500)
 ax.set_title('friction coef')
 ax.set_aspect('equal')
 ax.tricontour(mtri, levelset, levels=(0,), colors=('w',))
 fig.colorbar(pc)
-fig.savefig('friction_coefficient.png', dpi=400)
+fig.savefig('friction_coefficient_glads.png', dpi=400)
 
-model_vel = np.load('v.npy').squeeze()
+model_vel = np.load('v_glads.npy').squeeze()
 
 # obs_vel = np.load('obs_vel.npy').squeeze()
 vx = np.load('../data/geom/vx.npy')
@@ -35,12 +35,14 @@ diff_pc = axs[2].tripcolor(mtri, model_vel-obs_vel,
     vmin=-500, vmax=500, cmap='RdBu_r')
 
 
-for ax in axs:
+for ax in axs.flat[:-1]:
     ax.set_aspect('equal')
     ax.spines[['left', 'right', 'top', 'bottom']].set_visible(False)
     ax.set_xticks([])
     ax.set_yticks([])
     ax.tricontour(mtri, levelset, levels=(0,), colors=('k',))
+
+axs.flat[-1].set_visible(False)
 
 fig.subplots_adjust(left=0.1, bottom=0.05, right=0.9, top=0.9, wspace=0.05, hspace=0.1)
 
@@ -53,7 +55,7 @@ axs[0].set_title('Observed')
 axs[1].set_title('Model')
 axs[2].set_title('Model - Observed')
 
-fig.savefig('velocitySolution.png', dpi=400)
+fig.savefig('velocitySolution_glads.png', dpi=400)
 
 # plt.show()
 
