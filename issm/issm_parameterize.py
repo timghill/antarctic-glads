@@ -20,6 +20,7 @@ Temp_change          =  0  # default [0 K]
 md.mesh.epsg=3031
 
 
+
 #Geometry
 md.mask.ocean_levelset = np.load('../data/geom/ocean_levelset.npy')
 md.mask.ice_levelset = np.load('../data/geom/ice_levelset.npy')
@@ -46,7 +47,7 @@ md.initialization.pressure=md.materials.rho_ice*md.constants.g*md.geometry.thick
 print('   Construct ice rheological properties')
 md.materials.rheology_n=3*np.ones((md.mesh.numberofelements,1))
 md.materials.rheology_B=cuffey(md.initialization.temperature)
-md.materials.rheology_B[md.mask.ocean_levelset<0] = cuffey(md.initialization.temperature[md.mask.ocean_levelset<0]-10)
+md.materials.rheology_B[md.mask.ocean_levelset<0] = cuffey(md.initialization.temperature[md.mask.ocean_levelset<0])
 print('mean rheology B:', np.mean(md.materials.rheology_B[md.mask.ocean_levelset<0]))
 print(np.mean(md.initialization.temperature[md.mask.ocean_levelset<0]))
 
