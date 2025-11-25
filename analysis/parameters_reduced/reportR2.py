@@ -17,7 +17,8 @@ basins = [
     # 'Cp-D', 
     # 'G-H', 
     # 'Jpp-K', 
-    # 'J-Jpp', 
+    'J-Jpp', 
+    'Ep-F',
     # 'F-G',
 ]
 
@@ -71,8 +72,8 @@ def reportR2(basins, train='ff', split='test', ubThreshold=None):
 
         # Y_glads = outputs[:, index]
         # N_glads = np.load(f'../../issm/{basin}/glads/N.npy')[levelset>0,index]
-        Y_glads = np.load(f'data/CV_{basin}_f_glads.npy')
-        N_glads = np.load(f'data/CV_{basin}_N_glads.npy')
+        Y_glads = np.load(f'data/pred_{basin}_f_glads.npy')
+        N_glads = np.load(f'data/pred_{basin}_N_glads.npy')
 
         mask = np.logical_and(Y_glads>=0, Y_glads<=1)
 

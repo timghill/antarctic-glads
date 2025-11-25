@@ -3,81 +3,141 @@ from matplotlib import pyplot as plt
 from matplotlib.gridspec import GridSpec
 import cmocean
 
-colors = ['#89b6bc', '#0d7d87', '#ff5a5e', '#c31e23']
+# colors = ['#89b6bc', '#0d7d87', '#ff5a5e', '#c31e23']
+# colors = ['#3465CF', '#47577A']
+colors = [cmocean.cm.diff(0.2), cmocean.cm.diff(0.4)]
 
 # Feature importance
-dN = np.load('deltaR2N.npy')
-df = np.load('deltaR2f.npy')    
+dN = np.load('deltaR2N_full.npy')
+df = np.load('deltaR2f_full.npy')    
+dN_red = np.load('deltaR2N_reduced.npy')
+df_red = np.load('deltaR2f_reduced.npy')    
 basins = [
     'G-H',
-    # 'F-G',  # TODO check outputs, look like numerical issues
-    # 'Ep-F', # jobs not done
+    # 'Ep-F',
     'Cp-D',
     'C-Cp',
     'B-C',
     'Jpp-K',
-    # 'J-Jpp',# TODO check outputs, look like numerical issues
+    # 'J-Jpp',
 ]
-features = [
-    'bed',
-    'surface',
-    # 'thickness',
-    'grounding_line_distance',
-    'basal_melt',
-    'potential',
-    'surface_slope',
-    'bed_slope',
-    'potential_slope',
+features = np.array([
+    'Bed elevation',
+    'Surface elevation',
+    'Thickness',
+    'Distance to GL',
+    'Basal melt rate',
+    'Shreve potential',
+    'Surface slope',
+    'Bed slope',
+    'Potential slope',
     # 'binned_flow_accumulation',
-]
+])
+
+reduced_features = np.array([0, 2, 3, 5, 6])
+features_nothickness = np.array([0,1,3,4,5,6,7,8]).astype(int)
+
 # Sensitivity to particular training basin
 basin_sensitivity_R2 = np.load('data/basin_sensitivity_R2_N.npy')
 
 # Sensitivity to number of basins
 number_basins_R2 = np.load('data/basin_sensitivity_factorial_R2_N.npy')
 
-fig = plt.figure(figsize=(8, 8))
-gs = GridSpec(2, 4, wspace=0.05, hspace=0.05,
-    left=0.09, right=0.92, bottom=0.15, top=0.95,
-    width_ratios=(100, 10, 100, 5),
-)
+fig,(ax1,ax11) = plt.subplots(2, 1, figsize=(4,6), sharex=False)
+axs = (ax1,ax11)
 
-ax1 = fig.add_subplot(gs[1,:3])
-ax2 = fig.add_subplot(gs[0,0])
-ax3 = fig.add_subplot(gs[0,2])
-
-cax = fig.add_subplot(gs[0,-1])
-
+# Bar 1
 ax = ax1
-bar1 = ax.bar(np.arange(len(features))-0.25, 
+bar1 = ax.barh(np.arange(len(features))-0.25, 
     np.mean(df, axis=(0, 1)), 
-    yerr=np.std(df, axis=(0, 1)), 
-    width=0.4,
+    xerr=np.std(df, axis=(0, 1)), 
+    height=0.4,
     color=colors[0],
     label='Flotation fraction',
 )
+ax.set_xlim([0, 1.4])
 
-ax.set_xticks(np.arange(len(features)), features, rotation=45, ha='right')
+ax.set_yticks(np.arange(len(features)), features, rotation=45, ha='right')
 # ax.set_title('Flotation fraction feature importance')
-ax.set_ylabel(r'Flotation fraction $R^2$ decrease', color='k', fontsize=8)
+# ax.set_xlabel(r'Flotation fraction $R^2$ decrease', color='k', fontsize=8)
 
-axtwin = ax.twinx()
-bar2 = axtwin.bar(np.arange(len(features))+0.25, 
+axtwin = ax.twiny()
+bar2 = axtwin.barh(np.arange(len(features))+0.25, 
     np.mean(dN, axis=(0, 1)), 
-    yerr=np.std(df, axis=(0, 1)), 
-    width=0.4,
+    xerr=np.std(dN, axis=(0, 1)), 
+    height=0.4,
     color=colors[1],
     label='Effective pressure',
 )
+axtwin.set_xlim([0, 16])
 # ax.set_title("Feature importances using permutation: flotation fraction")
-axtwin.set_ylabel('Effective pressure $R^2$ decrease', color='k', fontsize=8)
-ax.legend(handles=(bar1, bar2), loc='upper right', frameon=False, fontsize=8)
+axtwin.set_xlabel('Effective pressure $R^2$ decrease', color='k', fontsize=8)
+ax.legend(handles=(bar1, bar2), loc='upper right', frameon=True, fontsize=8)
 
-ax.set_ylim(bottom=0)
-axtwin.set_ylim(bottom=0)
+ax.set_xlim(left=0)
+axtwin.set_xlim(left=0)
 ax.grid()
-ax1.text(-0.0125, 1.025, 'c', transform=ax1.transAxes,
-    fontweight='bold', ha='right', va='bottom')
+
+# reduced_mean_f = np.zeros(len(features))
+# reduced_yerr_f = np.zeros(len(features))
+
+# Bar 2
+ax = ax11
+bar3 = ax.barh(np.arange(len(features))[reduced_features]-0.25, 
+    np.mean(df_red, axis=(0, 1)), 
+    xerr=np.std(df_red, axis=(0, 1)), 
+    height=0.4,
+    color=colors[0],
+    label='Flotation fraction',
+)
+ax.set_xlim([0, 1.4])
+
+ax.set_yticks(np.arange(len(features)), features, 
+    rotation=45, ha='right')
+# ax.set_yticklabels([])
+# ax.set_title('Flotation fraction feature importance')
+ax.set_xlabel(r'Flotation fraction $R^2$ decrease', color='k', fontsize=8)
+
+# ax.invert_yaxis()
+axtwin2 = ax.twiny()
+bar4 = axtwin2.barh(np.arange(len(features))[reduced_features]+0.25, 
+    np.mean(dN_red, axis=(0, 1)), 
+    xerr=np.std(dN_red, axis=(0, 1)), 
+    height=0.4,
+    color=colors[1],
+    label='Effective pressure',
+)
+axtwin2.set_xlim([0, 16])
+# ax.set_title("Feature importances using permutation: flotation fraction")
+# axtwin2.set_xlabel('Effective pressure $R^2$ decrease', color='k', fontsize=8)
+# ax.legend(handles=(bar1, bar2), loc='upper right', frameon=False, fontsize=8)
+
+ax.set_xlim(left=0)
+axtwin2.set_xlim(left=0)
+ax.grid()
+ax.set_ylim(ax1.get_ylim())
+
+
+ax1.text(-0.05, 1.025, '(a)', transform=ax1.transAxes,
+    fontweight='bold', ha='right', va='bottom', fontsize=8)
+ax11.text(-0.05, 1.025, '(b)', transform=ax11.transAxes,
+    fontweight='bold', ha='right', va='bottom', fontsize=8)
+ax11.set_xlim(ax1.get_xlim())
+axtwin2.set_xlim(axtwin.get_xlim())
+
+axs = (ax1,ax11,axtwin,axtwin2)
+for ax in axs:
+    ax.tick_params(labelsize=8)
+
+fig.subplots_adjust(left=0.275, top=0.9, bottom=0.085)
+fig.savefig('figures/feature_importance.png', dpi=400)
+
+###################################################################
+# Basin sensitivity
+
+fig, (ax2,_,ax3,cax) = plt.subplots(4, 1, figsize=(4,6),
+    height_ratios=(100,10,100,10))
+axs = (ax2,ax3)
 
 nbasins = len(basins)
 x = np.arange(nbasins)
@@ -90,8 +150,9 @@ ax2.xaxis.tick_top()
 ax2.xaxis.set_label_position('top')
 ax2.set_ylabel('Basin excluded from training', fontsize=8)
 ax2.set_xlabel('Test basin', fontsize=8)
-ax2.text(-0.025, 1.025, 'a', transform=ax2.transAxes,
-    fontweight='bold', ha='right', va='bottom')
+ax2.text(-0.025, 1.025, '(a)', transform=ax2.transAxes,
+    fontweight='bold', ha='right', va='bottom', fontsize=8)
+# ax2.set_aspect('equal')
 for iy in range(nbasins):
     for ix in range(nbasins):
         if iy!=ix:
@@ -110,8 +171,9 @@ ax3.set_yticks(y, y)
 ax3.set_xticks(x, basins)
 ax3.set_xlabel('Test basin', fontsize=8)
 ax3.set_ylabel('Number of basins', fontsize=8)
-ax3.text(-0.025, 1.025, 'b', transform=ax3.transAxes,
-    fontweight='bold', ha='right', va='bottom')
+ax3.text(-0.025, 1.025, '(b)', transform=ax3.transAxes,
+    fontweight='bold', ha='right', va='bottom', fontsize=8)
+# ax3.set_aspect('equal')
 for iy in range(len(y)):
     for ix in range(len(x)):
         if iy<(len(y)-1):
@@ -120,14 +182,52 @@ for iy in range(len(y)):
             ax3.text(x[ix], y[iy], '{:.3f}'.format(deltar), fontsize=8,
                 ha='center', va='center', color=color)
 
-
-cbar = fig.colorbar(Rpc, cax=cax)
+cbar = fig.colorbar(Rpc, cax=cax, orientation='horizontal')
 cbar.set_label(r'$\Delta R^2$', fontsize=8)
 
-for ax in (ax1,ax2,ax3,cax):
+for ax in (ax2,ax3,cax):
     ax.tick_params(labelsize=8)
-
-
-
+_.set_visible(False)
+fig.subplots_adjust(hspace=0.1, bottom=0.085, top=0.9, left=0.15, right=0.95)
 fig.savefig('figures/hyperparameter_sensitivity.png', dpi=400)
 
+
+
+# Plot the case with no thickness
+dN_nt = np.load('deltaR2N_nothickness.npy')
+df_nt = np.load('deltaR2f_nothickness.npy')    
+fig,ax = plt.subplots(figsize=(5, 4))
+
+# Bar 1
+bar1 = ax.bar(np.arange(len(features_nothickness))-0.25, 
+    np.mean(df_nt, axis=(0, 1)), 
+    yerr=np.std(df_nt, axis=(0, 1)), 
+    width=0.4,
+    color=colors[0],
+    label='Flotation fraction',
+)
+
+ax.set_xticks(np.arange(len(features_nothickness)), features[features_nothickness], rotation=45, ha='right')
+# ax.set_title('Flotation fraction feature importance')
+ax.set_ylabel(r'Flotation fraction $R^2$ decrease', color='k', fontsize=8)
+
+axtwin = ax.twinx()
+bar2 = axtwin.bar(np.arange(len(features_nothickness))+0.25, 
+    np.mean(dN_nt, axis=(0, 1)), 
+    yerr=np.std(dN_nt, axis=(0, 1)), 
+    width=0.4,
+    color=colors[1],
+    label='Effective pressure',
+)
+# ax.set_title("Feature importances using permutation: flotation fraction")
+axtwin.set_ylabel('Effective pressure $R^2$ decrease', color='k', fontsize=8)
+ax.legend(handles=(bar1, bar2), loc='upper right', frameon=True, fontsize=8)
+
+# ax.in()
+
+ax.set_ylim(bottom=0)
+axtwin.set_ylim(bottom=0)
+ax.grid()
+
+fig.tight_layout()
+fig.savefig('figures/para_sensitivity_no_thickness.png', dpi=400)

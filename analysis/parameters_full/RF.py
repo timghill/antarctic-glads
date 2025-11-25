@@ -7,16 +7,34 @@ import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.gridspec import GridSpec
 from matplotlib.tri import Triangulation
+from matplotlib import path
 import cmocean
-
-
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import r2_score, explained_variance_score
-from sklearn.inspection import permutation_importance
-import scipy.interpolate
-from scipy.stats import gaussian_kde
+from scipy import interpolate
+import xarray as xr
 
 from utils.RF import RFDataPara
+
+
+def _interp2bedmachine(xi, yi, z, stride=5,
+    bedmachine='../../data/bedmachine/BedMachineAntarctica-v3.nc'):
+    with xr.open_dataset(bedmachine) as bm:
+        x = bm['x'][::stride]
+        y = bm['y'][::stride]
+        bm_mask = bm['mask'][::stride, ::stride]
+    
+    # Take a rectangular subset of bedmachine
+    bm_mask = bm_mask[np.logical_and(y>=yi.min(), y<=yi.max()), np.logical_and(x>=xi.min(), x<=xi.max())]
+    x = x[np.logical_and(x>=xi.min(), x<=xi.max())]
+    y = y[np.logical_and(y>=yi.min(), y<=yi.max())]
+    
+    xx,yy = np.meshgrid(x,y)
+
+    # interpfn = interpolate.NearestNDInterpolator((mesh['x'], mesh['y'], z))
+    meshxy = (xi, yi)
+    zgrid = interpolate.griddata(meshxy, z, (xx,yy), method='linear', fill_value=np.nan)
+    zgrid[bm_mask!=2] = np.nan
+    return xx,yy,zgrid
 
 
 def trainRF(basins, features, Xscale=None, Yscale=None, nPerSim=100,
@@ -156,6 +174,41 @@ def parabasinCV(basins, features, nPerSim=100, field='ff', k=1):
         np.save(f'data/CV_{basin}_f_rf.npy', ypredphys)
         np.save(f'data/CV_{basin}_N_rf.npy', N_RF)
         istart += testData.X.shape[0]
+
+        # Interpolating to bedmachine grid
+        outline = np.load(f'../../data/ANT_Basins/basin_{testBasin}.npy')
+        basinPath = path.Path(outline, closed=True)
+        mesh = np.load(f'../../issm/{basin}/data/geom/mesh.npy', allow_pickle=True)
+        print('Interpolating to bedmachine')
+        xi = mesh['x'][levelset==1]
+        yi = mesh['y'][levelset==1]
+        xx,yy,Yhat_bm = _interp2bedmachine(xi, yi, ypredphys)
+        _,_,Yphys_bm = _interp2bedmachine(xi, yi, testData.Yphys)
+        _,_,Nrf_bm = _interp2bedmachine(xi, yi, N_RF)
+        _,_,Nglads_bm = _interp2bedmachine(xi, yi, N_glads)
+
+        # basinMask = np.zeros(xx.shape)
+        print('Masking out-of-basin points')
+        xy = np.array([xx.flatten(), yy.flatten()]).T
+        basinMask = basinPath.contains_points(xy).reshape(xx.shape)
+
+        # Mask out additional points
+        Yhat_bm[~basinMask] = np.nan
+        Yphys_bm[~basinMask] = np.nan
+        Nrf_bm[~basinMask] = np.nan
+        Nglads_bm[~basinMask] = np.nan
+
+        # Save the grid and interpolated outputs
+        bmgrid = {}
+        bmgrid['xx'] = xx
+        bmgrid['yy'] = yy
+        bmgrid['RF'] = Yhat_bm.astype(np.float32)
+        bmgrid['glads'] = Yphys_bm.astype(np.float32)
+        bmgrid['N_RF'] = Nrf_bm.astype(np.float32)
+        bmgrid['N_glads'] = Nglads_bm.astype(np.float32)
+        with open(f'data/CV_{testBasin}_bmgrid.pkl', 'wb') as bmout:
+            pickle.dump(bmgrid, bmout)
+        print('Done interpolating')
     
     print('SUMMARY')
     mask = np.logical_and(data.Yphys>=0, data.Yphys<=1)
@@ -234,16 +287,16 @@ def main(basins, features, field='ff', nPerSim=100, k=10):
     print(f'done ({dt:.2f} seconds)')   
     print('Tree-based importance:', regr.feature_importances_)
     print('Saving trained model...', end=' ', flush=True)
-    with open('model.pkl', 'wb') as fout:
-        pickle.dump(regr, fout)
+    # with open('model.pkl', 'wb') as fout:
+    #     pickle.dump(regr, fout)
     print('done')
 
 
     print('Cross-validation')
     Ypred, R2 = parabasinCV(basins, features, nPerSim=nPerSim, k=k, field=field)
 
-    print('Predicting for all basins')
-    predictBasins(basins, features, field=field)
+    # print('Predicting for all basins')
+    # predictBasins(basins, features, field=field)
 
     return
 
@@ -283,8 +336,8 @@ if __name__=='__main__':
         # 'binned_flow_accumulation',
     ]
     # theta: sheet cond, channel cond, r_b, l_c, A
-    # main(basins, features, field='ff', nPerSim=10, k=10)
+    main(basins, features, field='ff', nPerSim=100, k=5)
     # evaluate_error(basins, features, highlight=95)
-    regr = np.load('model.pkl', allow_pickle=True)
-    predictBasins(regr, basins, testBasins, features, field='ff')
+    # regr = np.load('model.pkl', allow_pickle=True)
+    # predictBasins(regr, basins, testBasins, features, field='ff')
 

@@ -10,6 +10,7 @@ def main(basin, year):
     levelset = np.load(f'../data/geom/ocean_levelset.npy')
     present_levelset = np.load(f'../../{basin}/data/geom/ocean_levelset.npy')
     npara = 100
+    print('levelset:', f'../../{basin}/data/geom/ocean_levelset.npy')
 
     thick = np.load('../data/geom/thick.npy')
     pice = g*rhoice*thick
@@ -47,13 +48,15 @@ def main(basin, year):
 
     # Load friction coefficient
     try:
-        C_glads = np.load(f'../../{basin}/issm/solutions/friction_coefficient_glads_nonlinear.npy').squeeze()
+        C_glads = np.load(f'../../{basin}_para/issm/solutions/friction_coefficient_glads_nonlinear.npy').squeeze()
     except: 
-        raise IOError(f'Can not find friction coefficient (../../{basin}/issm/solutions/friction_coefficient_glads_nonlinear.npy); must run friction inversions first!')
+        raise IOError(f'Can not find friction coefficient (../../{basin}_para/issm/solutions/friction_coefficient_glads_nonlinear.npy); must run friction inversions first!')
     C_glads[levelset<0] = 0
 
-    C_rf = np.load(f'../../{basin}/issm/solutions/friction_coefficient_RF_nonlinear.npy').squeeze()
+    C_rf = np.load(f'../../{basin}_para/issm/solutions/friction_coefficient_RF_nonlinear.npy').squeeze()
     C_rf[levelset<0] = 0
+
+    print('C:', f'../../{basin}_para/issm/solutions/friction_coefficient_RF_nonlinear.npy')
 
     uu_glads = np.zeros(N_glads_future.shape)
     uu_rf = np.zeros(N_rf_future.shape)

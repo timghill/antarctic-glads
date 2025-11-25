@@ -38,11 +38,11 @@ engine = 'scipy'
 def _load_N_fields(basin):
     levelset = np.load('../data/geom/ocean_levelset.npy')
     Nglads = np.zeros(len(levelset))
-    Nglads[levelset>0] = np.load(f'../../../analysis/parameters_full/data/pred_{basin}_N_glads.npy').mean(axis=1)
+    Nglads[levelset>0] = np.load(f'../../../analysis/parameters_reduced/data/pred_{basin}_N_glads.npy').mean(axis=1)
     Nrf = np.zeros(len(levelset))
-    Nrf[levelset>0] = np.load(f'../../../analysis/parameters_full/data/pred_{basin}_N_rf.npy').mean(axis=1)
+    Nrf[levelset>0] = np.load(f'../../../analysis/parameters_reduced/data/pred_{basin}_N_rf.npy').mean(axis=1)
     Ncv = np.zeros(len(levelset))
-    Ncv[levelset>0] = np.load(f'../../../analysis/parameters_full/data/CV_{basin}_N_rf.npy').mean(axis=1)
+    Ncv[levelset>0] = np.load(f'../../../analysis/parameters_reduced/data/CV_{basin}_N_rf.npy').mean(axis=1)
 
     # Enforce effective pressure caps
     rhoice = 917

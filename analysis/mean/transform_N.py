@@ -17,7 +17,8 @@ basins = [
     # 'Cp-D', 
     # 'G-H', 
     # 'Jpp-K', 
-    # 'J-Jpp', 
+    'J-Jpp', 
+    'Ep-F',
     # 'F-G',
 ]
 
@@ -68,10 +69,10 @@ def reportR2(basins, train='ff', split='test', ubThreshold=None):
         )
         # Add model outputs to list
         outputs = np.load(f'../../issm/{basin}/glads/ff.npy')[levelset>0,:]
-        # Y_glads = np.nanmean(outputs, axis=1) # Take average over perturbed parameters
+        Y_glads = np.nanmean(outputs, axis=1) # Take average over perturbed parameters
         # N_glads = np.nanmean(np.load(f'../../issm/{basin}/glads/N.npy')[levelset>0,:], axis=1)
 
-        Y_glads = outputs[:, index]
+        # Y_glads = outputs[:, index]
         # N_glads = np.load(f'../../issm/{basin}/glads/N.npy')[levelset>0,index]
         N_glads = np.load(f'data/CV_{basin}_N_glads.npy')
 
@@ -121,7 +122,7 @@ def reportR2(basins, train='ff', split='test', ubThreshold=None):
 
             N_RF_mesh.extend(N_RF[mask])
             N_RF_grid.extend(bmgrid['N_RF'].flatten())
-            N_glads_mesh.extend(N_glads[mask] - np.mean(N_glads[mask]))
+            N_glads_mesh.extend(N_glads[mask])# - np.mean(N_glads[mask]))
             N_glads_grid.extend(bmgrid['N_glads'].flatten())
 
         elif train=='N':

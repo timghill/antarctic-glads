@@ -71,8 +71,8 @@ def reportR2(basins, train='ff', split='test', ubThreshold=None):
 
         # Y_glads = outputs[:, index]
         # N_glads = np.load(f'../../issm/{basin}/glads/N.npy')[levelset>0,index]
-        Y_glads = np.load(f'data/CV_{basin}_f_glads.npy')
-        N_glads = np.load(f'data/CV_{basin}_N_glads.npy')
+        Y_glads = np.load(f'data/pred_{basin}_f_glads.npy')
+        N_glads = np.load(f'data/pred_{basin}_N_glads.npy')
 
         mask = np.logical_and(Y_glads>=0, Y_glads<=1)
 
@@ -97,37 +97,35 @@ def reportR2(basins, train='ff', split='test', ubThreshold=None):
             # print('Mesh var:', np.nanvar(Y_glads[mask]))
 
             # # Equal-area
-            # bmgrid = np.load(f'data/CV_{basin}_bmgrid.pkl', allow_pickle=True)
-            # R2_f_grid = 1 - np.nanvar(bmgrid['RF'] - bmgrid['glads'])/np.nanvar(bmgrid['glads'])
-            # R2_N_grid = 1 - np.nanvar(bmgrid['N_RF'] - bmgrid['N_glads'])/np.nanvar(bmgrid['N_glads'])
+            bmgrid = np.load(f'data/CV_{basin}_bmgrid.pkl', allow_pickle=True)
+            for key in bmgrid.keys():
+                bmgrid[key] = bmgrid[key][::2,::2]
+            gridmask = np.logical_and(bmgrid['glads']>=0, bmgrid['glads']<=1)
+            R2_f_grid = 1 - np.nanvar(bmgrid['RF'][gridmask] - bmgrid['glads'][gridmask])/np.nanvar(bmgrid['glads'][gridmask])
+            R2_N_grid = 1 - np.nanvar(bmgrid['N_RF'] [gridmask]- bmgrid['N_glads'][gridmask])/np.nanvar(bmgrid['N_glads'][gridmask])
 
             table[i][0] = R2_f
             table[i][1] = 100*_percentError(Y_RF[mask], Y_glads[mask])
-            # table[i][2] = R2_f_grid
-            # table[i][3] = 100*_percentError(bmgrid['RF'], bmgrid['glads'])
+            table[i][2] = R2_f_grid
+            table[i][3] = 100*_percentError(bmgrid['RF'][gridmask], bmgrid['glads'][gridmask])
 
             Ntable[i][0] = R2_N
             Ntable[i][1] = 100*_percentError(N_RF[mask], N_glads[mask])
-            # Ntable[i][2] = R2_N_grid
-            # Ntable[i][3] = 100*_percentError(bmgrid['N_RF'], bmgrid['N_glads'])
+            Ntable[i][2] = R2_N_grid
+            Ntable[i][3] = 100*_percentError(bmgrid['N_RF'][gridmask], bmgrid['N_glads'][gridmask])
 
             # print('Gridded var:', np.nanvar(bmgrid['glads']))
 
             Y_RF_mesh.extend(Y_RF[mask])
-            # Y_RF_grid.extend(bmgrid['RF'].flatten())
+            Y_RF_grid.extend(bmgrid['RF'][gridmask].flatten())
             Y_glads_mesh.extend(Y_glads[mask])
-            # Y_glads_grid.extend(bmgrid['glads'].flatten())
+            Y_glads_grid.extend(bmgrid['glads'][gridmask].flatten())
 
             N_RF_mesh.extend(N_RF[mask])
-            # N_RF_grid.extend(bmgrid['N_RF'].flatten())
+            N_RF_grid.extend(bmgrid['N_RF'][gridmask].flatten())
             # N_glads_mesh.extend(N_glads[mask] - np.mean(N_glads[mask]))
             N_glads_mesh.extend(N_glads[mask])
-            # N_glads_grid.extend(bmgrid['N_glads'].flatten())
-
-    # Y_RF_mesh = []
-    # Y_RF_grid = []
-    # Y_glads_mesh = []
-    # Y_glads_grid = []
+            N_glads_grid.extend(bmgrid['N_glads'][gridmask].flatten())
         
     Y_RF_mesh = np.array(Y_RF_mesh)
     Y_RF_grid = np.array(Y_RF_grid)

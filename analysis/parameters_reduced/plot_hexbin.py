@@ -3,6 +3,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.tri import Triangulation
 from matplotlib.gridspec import GridSpec, GridSpecFromSubplotSpec
+from matplotlib.patches import Rectangle
 import cmocean
 import netCDF4 as nc
 
@@ -14,7 +15,7 @@ g = 9.81
 profile_basins = ['G-H', 'G-H', 'C-Cp', 'B-C', 'Jpp-K', 'Cp-D']
 profile_numbers = [0, 1, 0, 0, 0, 0]
 profile_labels = ['Thwaites', 'PIG', 'Denman', 'Lambert', 'Recovery', 'Totten']
-alphabet = ['a', 'b', 'd', 'e', 'c', 'f']
+alphabet = ['(a)', '(b)', '(d)', '(e)', '(c)', '(f)']
 
 bedmachine = '../../data/bedmachine/BedMachineAntarctica-v3.nc'
 
@@ -80,24 +81,24 @@ def plot_error(basins, index=15):
         levelset = np.load(f'../../issm/{basin}/data/geom/ocean_levelset.npy')
         mesh = np.load(f'../../issm/{basin}/data/geom/mesh.npy', allow_pickle=True)
         yi_glads = np.zeros(levelset.shape)*np.nan
-        yi_glads[levelset>0] = np.load(f'data/CV_{basin}_f_glads.npy')[:, index]
+        yi_glads[levelset>0] = np.load(f'data/pred_{basin}_f_glads.npy')[:, index]
         yi_rf = np.zeros(levelset.shape)*np.nan
         yi_rf[levelset>0] = np.load(f'data/CV_{basin}_f_rf.npy')[:, index]
         
         ni_glads = np.zeros(levelset.shape)*np.nan
-        ni_glads[levelset>0] = np.load(f'data/CV_{basin}_N_glads.npy')[:, index]
+        ni_glads[levelset>0] = np.load(f'data/pred_{basin}_N_glads.npy')[:, index]
         ni_rf = np.zeros(levelset.shape)*np.nan
         ni_rf[levelset>0] = np.load(f'data/CV_{basin}_N_rf.npy')[:, index]
 
-        Y_glads = np.concatenate((Y_glads, np.load(f'data/CV_{basin}_f_glads.npy').flatten()))
+        Y_glads = np.concatenate((Y_glads, np.load(f'data/pred_{basin}_f_glads.npy').flatten()))
         Y_rf = np.concatenate((Y_rf, np.load(f'data/CV_{basin}_f_rf.npy').flatten()))
-        N_glads = np.concatenate((N_glads, np.load(f'data/CV_{basin}_N_glads.npy').flatten()))
+        N_glads = np.concatenate((N_glads, np.load(f'data/pred_{basin}_N_glads.npy').flatten()))
         N_rf = np.concatenate((N_rf, np.load(f'data/CV_{basin}_N_rf.npy').flatten()))
 
         phi_bed = rhofw*g*np.load(f'../../issm/{basin}/data/geom/bed.npy')[levelset>0,None]
         thick = np.load(f'../../issm/{basin}/data/geom/thick.npy')[levelset>0,None]
 
-        pot_glads = phi_bed + rhoi*g*thick*np.load(f'data/CV_{basin}_f_glads.npy')
+        pot_glads = phi_bed + rhoi*g*thick*np.load(f'data/pred_{basin}_f_glads.npy')
         pot_rf = phi_bed + rhoi*g*thick*np.load(f'data/CV_{basin}_f_rf.npy')
         print(1 - np.nanvar(pot_rf-pot_glads)/np.nanvar(pot_glads))
         phi_rf = np.concatenate((phi_rf, pot_rf.flatten()))
@@ -107,8 +108,8 @@ def plot_error(basins, index=15):
         mtri = Triangulation(mesh['x'], mesh['y'], mesh['elements']-1)
 
 
-        pc0 = axs[0,0].tripcolor(mtri, yi_glads, vmin=0.5, vmax=1, cmap=cmocean.cm.dense)
-        pc1 = axs[1,0].tripcolor(mtri, ni_glads/1e6, vmin=0, vmax=5, cmap=cmocean.cm.haline)
+        pc0 = axs[0,0].tripcolor(mtri, yi_glads, vmin=0.75, vmax=1, cmap=cmocean.cm.dense)
+        pc1 = axs[1,0].tripcolor(mtri, ni_glads/1e6, vmin=0, vmax=4, cmap=cmocean.cm.haline)
 
         pc2 = axs[0,1].tripcolor(mtri, (yi_rf - yi_glads), vmin=-0.1, vmax=0.1, cmap=cmocean.cm.balance)
         pc3 = axs[1,1].tripcolor(mtri, (ni_rf - ni_glads)/1e6, vmin=-1, vmax=1, cmap=cmocean.cm.balance)
@@ -131,14 +132,17 @@ def plot_error(basins, index=15):
     for cax in caxs.flat:
         cax.xaxis.set_label_position('top')
         cax.tick_params(labelsize=fs)
-        # cax.xaxis.tick_top()
+    
+    scalebar = Rectangle((xmin, ymin), 1000e3, 100e3, facecolor='k', edgecolor='k')
+    axs[0,0].add_patch(scalebar)
+    axs[0,0].text(xmin + 500e3, ymin+200e3, '1000 km', ha='center', fontsize=fs)
 
     dxytext = np.array([
         [-500e3, -400e3],
         [-750e3, 0],
         [200e3, -100e3],
         [650e3, 500e3],
-        [-0.75e6, 500e3],
+        [-0.6e6, 500e3],
         [0, -500e3],
     ])
 
@@ -173,6 +177,39 @@ def plot_error(basins, index=15):
         axs[1,0].text(tx, ty, profile_labels[p],
             ha=ha[p], va=va[p], fontsize=fs)
         axs[1,0].plot((xx[0], tx), (yy[0], ty), color='k', linewidth=0.65)
+
+    ####################################################################3
+    ## Label the basins in (a)
+    # basins = [
+    #     'B-C',
+    #     'G-H',
+    #     'Cp-D',
+    #     'C-Cp',
+    #     'Jpp-K',
+    #     'J-Jpp',
+    #     'Ep-F',
+    # ]
+    dxytext = np.array([
+        [650e3, -100e3],
+        [-1000e3, -300e3],
+        [400e3, 0],
+        [250e3, 0],
+        [-650e3, 1400e3],
+        [-400e3, 800e3],
+        [0, -900e3],
+    ])
+
+    for p in range(len(basins)):
+        basin = basins[p]
+        mesh = np.load(f'../../issm/{basin}/data/geom/mesh.npy', allow_pickle=True)
+        bx = np.mean(mesh['x'])
+        by = np.mean(mesh['y'])
+        tx = bx + dxytext[p][0]
+        ty = by + dxytext[p][1]
+        
+        axs[0,0].text(tx, ty, basin, fontsize=fs)
+
+
     
     ####################################################################3
     ## Hexbin
@@ -192,11 +229,12 @@ def plot_error(basins, index=15):
     cax = fig.add_subplot(gs[0,-1])
 
     fmin = 0.75
-    hb = ax1.hexbin(Y_glads, Y_rf, cmap=cmocean.cm.rain, gridsize=50,
-        extent=(fmin, 1, fmin, 1))
-    ax1.grid()
     ax1.set_xlim([fmin, 1])
     ax1.set_ylim([fmin, 1])
+    ax1.set_aspect('equal')
+    hb = ax1.hexbin(Y_glads, Y_rf, cmap=cmocean.cm.rain, gridsize=100,
+        extent=(fmin, 1, fmin, 1), linewidths=(0.2,), vmin=0, vmax=3e4)
+    ax1.grid()
     mask = np.logical_and(Y_glads>=0, Y_glads<=1)
     r2f = 1 - np.nanvar(Y_rf[mask] - Y_glads[mask])/np.nanvar(Y_glads[mask])
     print('r2f:', r2f)
@@ -205,17 +243,17 @@ def plot_error(basins, index=15):
     
     Nmin = 0
     Nmax = 5
-    ax2.hexbin(N_glads/1e6, N_rf/1e6, cmap=cmocean.cm.rain,
-        gridsize=50, extent=(Nmin, Nmax, Nmin, Nmax))
-    ax2.grid()
     ax2.set_xlim([Nmin, Nmax])
     ax2.set_ylim([Nmin, Nmax])
+    ax2.set_aspect('equal')
+    ax2.hexbin(N_glads/1e6, N_rf/1e6, cmap=cmocean.cm.rain,
+        gridsize=100, extent=(Nmin, Nmax, Nmin, Nmax), linewidths=(0.1,),
+        vmin=0, vmax=3e4)
+    ax2.grid()
     r2N = 1 - np.nanvar(N_rf[mask] - N_glads[mask])/np.nanvar(N_glads[mask])
     print('r2N:', r2N)
     ax2.set_title(f'$R^2$ = {r2N:.3f}', fontsize=fs)
-    
-    ax1.set_aspect('equal')
-    ax2.set_aspect('equal')
+
     
     ax1.set_xlabel('GlaDS flotation fraction (-)', fontsize=fs)
     ax1.set_ylabel('RF flotation fraction (-)', fontsize=fs)
@@ -248,12 +286,8 @@ if __name__=='__main__':
         'Cp-D',
         'C-Cp',
         'Jpp-K',
-        # 'C-Cp', 
-        # 'Cp-D', 
-        # 'G-H', 
-        # 'Jpp-K', 
-        # 'J-Jpp', 
-        # 'F-G',
+        'J-Jpp',
+        'Ep-F',
     ]
     plot_error(basins, index=14)
 

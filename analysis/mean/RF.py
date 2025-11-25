@@ -21,11 +21,6 @@ import xarray as xr
 
 from utils.RF import RFData, AISData
 
-"""
-TODO
- - https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.HistGradientBoostingRegressor.html#sklearn.ensemble.HistGradientBoostingRegressor
-"""
-
 def _interp2bedmachine(xi, yi, z, stride=5,
     bedmachine='../../data/bedmachine/BedMachineAntarctica-v3.nc'):
     with xr.open_dataset(bedmachine) as bm:
@@ -156,11 +151,6 @@ def crossVal(basins, feature_keys, nPerBasin=1000, index=None):
         
 
         # Interpolating to bedmachine grid
-        Yhat_interp = Yhat.copy()
-        Yhat_interp[~mask] = np.nan
-        Yphys_interp = Yphys.copy()
-        Yphys_interp[~mask] = np.nan
-
         outline = np.load(f'../../data/ANT_Basins/basin_{testBasin}.npy')
         basinPath = path.Path(outline, closed=True)
 
@@ -438,7 +428,7 @@ def predictBasins(rfData, rfRegr, feature_keys, basins):
         np.save(f'data/pred_{basin}_N_rf.npy', N_RF)
         np.save(f'data/pred_{basin}_N_glads.npy', N_glads)
 
-def featureImportance(data, regr, basins, features, repeats=10):
+def featureImportance(data, regr, basins, features, repeats=10, index=None):
     nfeat, dfeat = data.X.shape
     Yscale = data.Yscale
 
@@ -728,12 +718,12 @@ if __name__=='__main__':
     basins = [
         'G-H',
         # 'F-G',  # TODO check outputs, look like numerical issues
-        # 'Ep-F', # jobs not done
+        'Ep-F', # jobs not done
         'Cp-D',
         'C-Cp',
         'B-C',
         'Jpp-K',
-        # 'J-Jpp',# TODO check outputs, look like numerical issues
+        'J-Jpp',# TODO check outputs, look like numerical issues
     ]
 
     pred_basins = [
@@ -761,36 +751,78 @@ if __name__=='__main__':
         # 'binned_flow_accumulation',
     ]
 
+    reduced_features = [
+        'bed',
+        # 'surface',
+        'thickness',
+        'grounding_line_distance',
+        # 'basal_melt',
+        'potential',
+        'surface_slope',
+        # 'bed_slope',
+        # 'potential_slope',
+        # 'binned_flow_accumulation',
+    ]
+
     index = None
 
     # rfData, regr = trainRF(basins, features, nPerBasin=10000, feature_importance=False, index=index)
     # with open('rf.pkl', 'wb') as rfout:
-    #     pickle.dump(regr, rfout)
+        # pickle.dump(regr, rfout)
     with open('rf.pkl', 'rb') as rfin:
         regr = pickle.load(rfin)
+    # crossVal(basins, features, nPerBasin=10000, index=index)
+
+
     rfData = RFData(basins, features, index=index)
     rfData.normalizeX()
     rfData.normalizeY()
-    predictBasins(rfData, regr, features, pred_basins)
 
-    # dr2f, dr2N = featureImportance(rfData, regr, basins, features)
-    # np.save('deltaR2f.npy', dr2f)
-    # np.save('deltaR2N.npy', dr2N)
+    basinSensitivity(basins, features, nPerBasin=10000, index=index)
 
-    # plotImportance(features)
+    factorialBasinSensitivity(basins, features, nPerBasin=10000, index=index)
 
-    # scrambledThicknessPrediction(rfData, regr, basins, features)
+    # predictBasins(rfData, regr, features, pred_basins)
 
-    # simplifyModel(rfData, regr, basins, features)
-    # print('feature_importances_:', regr.feature_importances_)
+    dr2f_full, dr2N_full = featureImportance(rfData, regr, basins, features, index=index)
+    np.save('deltaR2f_full.npy', dr2f_full)
+    np.save('deltaR2N_full.npy', dr2N_full)
 
-    # crossVal(basins, features, nPerBasin=10000, index=index)
-    # AISfuture = predictContinent(rfData, regr, features, file='features_AIS_2300.pkl')
-    # AISpresent = predictContinent(rfData, regr, features, file='features_AIS.pkl')
-    # np.save('data/AISpred.npy', AISpresent)
-    # np.save('data/AISpred2300.npy', AISfuture)
-    # predictFutureContinent(rfData, regr, features)
+    rfData_reduced, regr_reduced = trainRF(basins, reduced_features, nPerBasin=10000,
+        feature_importance=False, index=index)
+    dr2f_red, dr2N_red = featureImportance(rfData_reduced, regr_reduced, basins, reduced_features, index=index)
+    np.save('deltaR2f_reduced.npy', dr2f_red)
+    np.save('deltaR2N_reduced.npy', dr2N_red)
 
-    # clustering(basins, features)
 
-    # factorialBasinSensitivity(basins, features, nPerBasin=2000, index=index)
+    features_nt = [
+        'bed',
+        'surface',
+        # 'thickness',
+        'grounding_line_distance',
+        'basal_melt',
+        'potential',
+        'surface_slope',
+        'bed_slope',
+        'potential_slope',
+    ]
+    rfData_nt, regr_nt = trainRF(basins, features_nt, nPerBasin=10000,
+        feature_importance=False, index=index)
+    dr2f_nt, dr2N_nt = featureImportance(rfData_nt, regr_nt, basins, features_nt, index=index)
+    np.save('deltaR2f_nothickness.npy', dr2f_nt)
+    np.save('deltaR2N_nothickness.npy', dr2N_nt)
+
+    # # plotImportance(features)
+
+    # # scrambledThicknessPrediction(rfData, regr, basins, features)
+
+    # # simplifyModel(rfData, regr, basins, features)
+    # # print('feature_importances_:', regr.feature_importances_)
+
+    # # AISfuture = predictContinent(rfData, regr, features, file='features_AIS_2300.pkl')
+    # # AISpresent = predictContinent(rfData, regr, features, file='features_AIS.pkl')
+    # # np.save('data/AISpred.npy', AISpresent)
+    # # np.save('data/AISpred2300.npy', AISfuture)
+    # # predictFutureContinent(rfData, regr, features)
+
+    # # clustering(basins, features)

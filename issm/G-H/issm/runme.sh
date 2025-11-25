@@ -8,7 +8,6 @@
 
 source ~/SFU-code/antarctic-glads/venv/bin/activate
 
-# python -u -m utils.issm.iceflow Lcurve G-H --coefficients 1 1e-2 1e-8
 python -u -m utils.issm.iceflow inverse G-H --coefficients 1 1e-2 1e-8
 python -u -m utils.issm.iceflow forward G-H
 

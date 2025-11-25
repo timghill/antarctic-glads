@@ -109,7 +109,6 @@ def main(basin):
     ax.plot(-10, u_glads_present[retreat_mask][0], marker='s', color=colors[0], markeredgecolor='k', clip_on=False)
     ax.plot(-10, uu_ref_flowline[retreat_mask][0], marker='s', markerfacecolor=colors[1], markeredgecolor='k', clip_on=False)
     ax.plot(-20, uu_ref_rf_flowline[retreat_mask][0], marker='s', markerfacecolor=colors[3], markeredgecolor='k', clip_on=False)
-    ax.set_clip_on(False)
     
     fig.text(0.5, 0.02, 'Distance from grounding line (km)', ha='center', va='bottom')
 
