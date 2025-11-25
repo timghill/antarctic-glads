@@ -39,8 +39,7 @@ from utils.issm.iceflow import run_forward
 def _load_N_fields(basin, year=2300):
     future_levelset = np.load('../data/geom/ocean_levelset.npy')
     present_levelset = np.load(f'../../{basin}/data/geom/ocean_levelset.npy')
-    print(basin)
-    print(year)
+    
     present = basin.replace('_para', '')
     future = (f'{basin}_{year}')
     future = future.replace('_para', '')
@@ -65,20 +64,20 @@ def _load_N_fields(basin, year=2300):
     pice = pice_future
 
     N_glads_present = np.zeros(len(present_levelset))
-    N_glads_present[present_levelset>0] = np.load(f'../../../analysis/parameters_full/data/pred_{present}_N_glads.npy').mean(axis=1)
+    N_glads_present[present_levelset>0] = np.load(f'../../../analysis/parameters_reduced/data/pred_{present}_N_glads.npy').mean(axis=1)
     # N_glads_present[future_levelset<0] = 0
 
     N_rf_present = np.zeros(len(present_levelset))
-    N_rf_present[present_levelset>0] = np.load(f'../../../analysis/parameters_full/data/pred_{present}_N_rf.npy').mean(axis=1)
+    N_rf_present[present_levelset>0] = np.load(f'../../../analysis/parameters_reduced/data/pred_{present}_N_rf.npy').mean(axis=1)
 
     N_cv_present = np.zeros(len(present_levelset))
-    N_cv_present[present_levelset>0] = np.load(f'../../../analysis/parameters_full/data/CV_{present}_N_rf.npy').mean(axis=1)
+    N_cv_present[present_levelset>0] = np.load(f'../../../analysis/parameters_reduced/data/CV_{present}_N_rf.npy').mean(axis=1)
 
     N_rf_future = np.zeros(len(future_levelset))
-    N_rf_future[future_levelset>0] = np.load(f'../../../analysis/parameters_full/data/pred_{future}_N_rf.npy').mean(axis=1)
+    N_rf_future[future_levelset>0] = np.load(f'../../../analysis/parameters_reduced/data/pred_{future}_N_rf.npy').mean(axis=1)
 
     N_glads_future = np.zeros(len(future_levelset))
-    N_glads_future[future_levelset>0] =  np.load(f'../../../analysis/parameters_full/data/pred_{future}_N_glads.npy').mean(axis=1)
+    N_glads_future[future_levelset>0] =  np.load(f'../../../analysis/parameters_reduced/data/pred_{future}_N_glads.npy').mean(axis=1)
 
     # Enforce effective pressure caps
     

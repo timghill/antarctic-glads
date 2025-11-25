@@ -16,8 +16,7 @@ colors = ['#89b6bc', '#0d7d87', '#ff5a5e', '#c31e23']
 fig, axs = plt.subplots(figsize=(12, 10), ncols=3, nrows=5, sharex=True)
 fs = 10
 N = len(basins)
-# for p in range(N):
-for p in [0,1,2,3,4]:
+for p in range(N):
     if p<2:
         future = 2050
     else:
@@ -115,18 +114,20 @@ for p in [0,1,2,3,4]:
             
 
     ax = axs[p,0]
-    ax.plot(ss/1e3, f_interp_glads_present, color=colors[0], 
-        label='GlaDS-present')
+    # ax.plot(ss/1e3, f_interp_glads_present, color=colors[0], 
+    #     label='GlaDS-present')
     if p in futureruns:
-        ax.plot(ss[retreat_mask]/1e3, f_interp_glads_future[retreat_mask], color=colors[1], 
-            label='GlaDS future', linestyle='solid')
-    ax.plot(ss/1e3, f_interp_RF_present, color=colors[2], 
-        label='RF present')
-    ax.plot(ss[retreat_mask]/1e3, f_interp_RF[retreat_mask], color=colors[3], 
-        label='RF future', linestyle='solid')
-    ax.set_ylim([0.6, 1])
+        ax.plot(ss[retreat_mask]/1e3, 
+            (f_interp_glads_future - f_interp_glads_present)[retreat_mask], 
+            color=colors[1], label='GlaDS future - present', linestyle='solid')
+    # ax.plot(ss/1e3, f_interp_RF_present, color=colors[2], 
+    #     label='RF present')
+    ax.plot(ss[retreat_mask]/1e3, 
+        (f_interp_RF - f_interp_RF_present)[retreat_mask], 
+        color=colors[3], label='RF future - present', linestyle='solid')
+    ax.set_ylim([-0.1, 0.175])
     ax.grid()
-    ax.set_ylabel('Flotation fraction (-)')
+    ax.set_ylabel(r'$\Delta$Flotation fraction (-)')
     # ax1.set_title(labels[p])
     # axs[p,0].set_ylabel(labels[p])
     axs[p,2].text(0.15, 0.95, '{}, {}'.format(labels[p], future), ha='left', va='top',
@@ -134,18 +135,20 @@ for p in [0,1,2,3,4]:
 
 
     ax = axs[p,1]
-    ax.plot(ss/1e3, N_interp_glads_present/1e6, color=colors[0], label='GlaDS present')
+    # ax.plot(ss/1e3, N_interp_glads_present/1e6, color=colors[0], label='GlaDS present')
     if p in futureruns:
-        ax.plot(ss[retreat_mask]/1e3, N_interp_glads_future[retreat_mask]/1e6, color=colors[1], 
-            label='GlaDS future')
-    ax.plot(ss/1e3, N_interp_RF_present/1e6, color=colors[2], 
-        label='RF present')
-    ax.plot(ss[retreat_mask]/1e3, N_interp_RF[retreat_mask]/1e6, color=colors[3], 
-        label='RF future')
-    ax.set_ylim([0, 4])
+        ax.plot(ss[retreat_mask]/1e3, 
+            (N_interp_glads_future - N_interp_glads_present)[retreat_mask]/1e6, 
+            color=colors[1], label='GlaDS future')
+    # ax.plot(ss/1e3, N_interp_RF_present/1e6, color=colors[2], 
+    #     label='RF present')
+    ax.plot(ss[retreat_mask]/1e3, 
+        (N_interp_RF - N_interp_RF_present)[retreat_mask]/1e6, 
+        color=colors[3], label='RF future')
+    ax.set_ylim([-1.5, 0.5])
     # ax.legend()
     ax.grid()
-    ax.set_ylabel('$N$ (MPa)')
+    ax.set_ylabel(r'$\Delta N$ (MPa)')
         # ax.set_title(labels[p])
 
 

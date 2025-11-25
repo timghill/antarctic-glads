@@ -13,7 +13,7 @@ from sklearn.ensemble import RandomForestRegressor
 from scipy import interpolate
 import xarray as xr
 
-from utils.RF import RFDataPara
+from utils.RF import RFDataPara, AISData
 
 
 def _interp2bedmachine(xi, yi, z, stride=5,
@@ -255,11 +255,15 @@ def predictBasins(regr, train_basins, test_basins, features,field='ff'):
         # print('TT:', TT.shape)
         # print(TT[:10])
         Xpred = np.hstack((XX, TT))
-        print('Xpred:', Xpred.shape)
+        # print('Xpred:', Xpred.shape)
+        t0 = time.perf_counter()
         Ypred = regr.predict(Xpred)
-        print('std mean:', np.mean(Ypred))
+        t1 = time.perf_counter()
+        dt = t1-t0
+        print('Time to predict on basin:', dt)
+        # print('std mean:', np.mean(Ypred))
         Ypred_phys = mu + sd*Ypred
-        print('phys mean:', np.mean(Ypred_phys))
+        # print('phys mean:', np.mean(Ypred_phys))
         Ypred_phys = Ypred_phys.reshape(testData.Y.shape, order='F')
 
         levelset = np.load(f'../../issm/{basin}/data/geom/ocean_levelset.npy')
@@ -276,6 +280,37 @@ def predictBasins(regr, train_basins, test_basins, features,field='ff'):
         r2 = 1 - np.nanvar(Ypred_phys[mask] - testData.Yphys[mask])/np.nanvar(testData.Yphys[mask])
         print('r2:', r2)
     return
+
+
+def predictContinent(rfData, rfRegr, feature_keys, index, file='features_AIS.pkl'):
+    stride = 1
+    AISdata = AISData(feature_keys, stride=stride, file=file)
+    AISdata.normalizeX(scale=rfData.Xscale)
+    XAIS = AISdata.X
+    mask = AISdata.mask
+
+    xpred = np.zeros((XAIS.shape[0], XAIS.shape[1]+5), dtype=np.float32)
+    xpred[:, :XAIS.shape[1]] = XAIS
+    
+    theta_norm = np.loadtxt('../../issm/theta_standard.csv', delimiter=',', skiprows=1)
+    xpred[:, XAIS.shape[1]:] = theta_norm[index,:]
+
+    print('xpred.shape:', xpred.shape)
+    # XAIS = XAIS[:, ::10000]
+    # print('XAIS:', XAIS.shape)
+    t1 = time.perf_counter()
+    Yhat = regr.predict(xpred)
+    t2 = time.perf_counter()
+    print('Time for AIS prediction:', t2-t1)
+
+    mu,sd = rfData.Yscale
+    YhatPhys = mu + sd*Yhat
+
+    AISpred = np.nan*np.zeros(mask.shape)
+    AISpred[mask] = YhatPhys
+    AISpred = np.flipud(AISpred)
+
+    return AISpred
 
 
 def main(basins, features, field='ff', nPerSim=100, k=10):
@@ -340,4 +375,19 @@ if __name__=='__main__':
     # evaluate_error(basins, features, highlight=95)
     # regr = np.load('model.pkl', allow_pickle=True)
     # predictBasins(regr, basins, testBasins, features, field='ff')
+
+    regr = np.load('model.pkl', allow_pickle=True)
+    rfData = RFDataPara(basins, features, field='ff')
+    rfData.normalizeX()
+    rfData.normalizeY()
+
+    predictBasins(regr, basins, testBasins, features, field='ff')
+
+    index = 14
+
+    # AISfuture = predictContinent(rfData, regr, features, index, file='../features/features_AIS_2300.pkl')
+    # np.save('data/AIS_2300_f.npy', AISfuture.astype(np.float32))
+    # AISpresent = predictContinent(rfData, regr, features, index, file='../features/features_AIS.pkl')
+    # np.save('data/AIS_f.npy', AISpresent.astype(np.float32))
+
 

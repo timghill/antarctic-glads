@@ -14,12 +14,12 @@ dN_red = np.load('deltaR2N_reduced.npy')
 df_red = np.load('deltaR2f_reduced.npy')    
 basins = [
     'G-H',
-    # 'Ep-F',
+    'Ep-F',
     'Cp-D',
     'C-Cp',
     'B-C',
     'Jpp-K',
-    # 'J-Jpp',
+    'J-Jpp',
 ]
 features = np.array([
     'Bed elevation',
@@ -43,7 +43,7 @@ basin_sensitivity_R2 = np.load('data/basin_sensitivity_R2_N.npy')
 # Sensitivity to number of basins
 number_basins_R2 = np.load('data/basin_sensitivity_factorial_R2_N.npy')
 
-fig,(ax1,ax11) = plt.subplots(2, 1, figsize=(4,6), sharex=False)
+fig,(ax1,ax11) = plt.subplots(2, 1, figsize=(4,6), sharex=False, height_ratios=(9, 5))
 axs = (ax1,ax11)
 
 # Bar 1
@@ -55,7 +55,7 @@ bar1 = ax.barh(np.arange(len(features))-0.25,
     color=colors[0],
     label='Flotation fraction',
 )
-ax.set_xlim([0, 1.4])
+ax.set_xlim([0, 2.2])
 
 ax.set_yticks(np.arange(len(features)), features, rotation=45, ha='right')
 # ax.set_title('Flotation fraction feature importance')
@@ -69,7 +69,7 @@ bar2 = axtwin.barh(np.arange(len(features))+0.25,
     color=colors[1],
     label='Effective pressure',
 )
-axtwin.set_xlim([0, 16])
+axtwin.set_xlim([0, 28])
 # ax.set_title("Feature importances using permutation: flotation fraction")
 axtwin.set_xlabel('Effective pressure $R^2$ decrease', color='k', fontsize=8)
 ax.legend(handles=(bar1, bar2), loc='upper right', frameon=True, fontsize=8)
@@ -83,16 +83,18 @@ ax.grid()
 
 # Bar 2
 ax = ax11
-bar3 = ax.barh(np.arange(len(features))[reduced_features]-0.25, 
+bar3 = ax.barh(np.arange(len(reduced_features))-0.25, 
     np.mean(df_red, axis=(0, 1)), 
     xerr=np.std(df_red, axis=(0, 1)), 
     height=0.4,
     color=colors[0],
     label='Flotation fraction',
 )
-ax.set_xlim([0, 1.4])
+ax.set_xlim([0, 2.2])
 
-ax.set_yticks(np.arange(len(features)), features, 
+# features[np.array([1,4,7,8])] = ''
+# feature_mask = np.array([0,2,3,5,6])
+ax.set_yticks(np.arange(len(features[reduced_features])), features[reduced_features], 
     rotation=45, ha='right')
 # ax.set_yticklabels([])
 # ax.set_title('Flotation fraction feature importance')
@@ -100,14 +102,14 @@ ax.set_xlabel(r'Flotation fraction $R^2$ decrease', color='k', fontsize=8)
 
 # ax.invert_yaxis()
 axtwin2 = ax.twiny()
-bar4 = axtwin2.barh(np.arange(len(features))[reduced_features]+0.25, 
+bar4 = axtwin2.barh(np.arange(len(reduced_features))+0.25, 
     np.mean(dN_red, axis=(0, 1)), 
     xerr=np.std(dN_red, axis=(0, 1)), 
     height=0.4,
     color=colors[1],
     label='Effective pressure',
 )
-axtwin2.set_xlim([0, 16])
+axtwin2.set_xlim([0, 28])
 # ax.set_title("Feature importances using permutation: flotation fraction")
 # axtwin2.set_xlabel('Effective pressure $R^2$ decrease', color='k', fontsize=8)
 # ax.legend(handles=(bar1, bar2), loc='upper right', frameon=False, fontsize=8)
@@ -115,7 +117,7 @@ axtwin2.set_xlim([0, 16])
 ax.set_xlim(left=0)
 axtwin2.set_xlim(left=0)
 ax.grid()
-ax.set_ylim(ax1.get_ylim())
+# ax.set_ylim(ax1.get_ylim())
 
 
 ax1.text(-0.05, 1.025, '(a)', transform=ax1.transAxes,
@@ -129,7 +131,7 @@ axs = (ax1,ax11,axtwin,axtwin2)
 for ax in axs:
     ax.tick_params(labelsize=8)
 
-fig.subplots_adjust(left=0.275, top=0.9, bottom=0.085)
+fig.subplots_adjust(left=0.25, top=0.9, bottom=0.085)
 fig.savefig('figures/feature_importance.png', dpi=400)
 
 ###################################################################

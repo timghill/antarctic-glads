@@ -16,16 +16,16 @@ def main(basin, year):
     pice = g*rhoice*thick
 
     N_rf_present = np.zeros((len(levelset), npara))
-    N_rf_present[present_levelset>0] = np.load(f'../../../analysis/parameters_full/data/pred_{basin}_N_rf.npy')
+    N_rf_present[present_levelset>0] = np.load(f'../../../analysis/parameters_reduced/data/pred_{basin}_N_rf.npy')
     
     N_rf_future = np.zeros((len(levelset), npara))
-    N_rf_future[levelset>0] = np.load(f'../../../analysis/parameters_full/data/pred_{basin}_{year}_N_rf.npy')
+    N_rf_future[levelset>0] = np.load(f'../../../analysis/parameters_reduced/data/pred_{basin}_{year}_N_rf.npy')
 
     N_glads_present = np.zeros((len(levelset), npara))
-    N_glads_present[present_levelset>0] = np.load(f'../../../analysis/parameters_full/data/pred_{basin}_N_glads.npy')
+    N_glads_present[present_levelset>0] = np.load(f'../../../analysis/parameters_reduced/data/pred_{basin}_N_glads.npy')
 
     N_glads_future = np.zeros((len(levelset), npara))
-    N_glads_future[levelset>0] = np.load(f'../../../analysis/parameters_full/data/pred_{basin}_{year}_N_glads.npy')
+    N_glads_future[levelset>0] = np.load(f'../../../analysis/parameters_reduced/data/pred_{basin}_{year}_N_glads.npy')
 
     N_rf_mean = np.mean(N_rf_present, axis=1)
     N_glads_mean = np.mean(N_glads_present, axis=1)
