@@ -7,6 +7,6 @@
 
 source ~/SFU-code/antarctic-glads/venv/bin/activate
 
-python -u -m utils.issm.run_para_sensitivity C-Cp 2050
+python -u -m utils.issm.run_para_sensitivity C-Cp 2300
 
 python runme.py
