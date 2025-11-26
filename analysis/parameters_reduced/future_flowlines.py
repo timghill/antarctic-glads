@@ -24,12 +24,6 @@ for p in range(N):
     basin = template.format(basins[p], future)
     present = basins[p]
 
-
-        # ax.plot(ss/1e3, N_interp_glads/1e6, color='black', label='GlaDS-present')
-        # ax.plot(ss/1e3, N_interp_RF_present/1e6, color='red', label='RF (train/present)', linestyle='dashed')
-        # ax.plot(ss/1e3, N_interp_CV_present/1e6, color='lightcoral', label='RF (CV/present)', linestyle='dashed')
-        # ax.plot(ss/1e3, N_interp_RF/1e6, color='red', label='RF (train/future)', linestyle='dotted')
-
     N_RF = np.load(f'data/pred_{basin}_N_rf.npy').mean(axis=1)
     N_RF_present = np.load(f'data/pred_{present}_N_rf.npy').mean(axis=1)
     N_glads_present = np.load(f'data/pred_{present}_N_glads.npy').mean(axis=1)
@@ -45,8 +39,6 @@ for p in range(N):
     
     is_iceflow = False
     try:
-        # C_glads = np.load(f'../../issm/{basin}/issm/solutions/friction_coefficient_glads_nonlinear.npy').squeeze()
-        # C_RF = np.load(f'../../issm/{basin}/issm/solutions/friction_coefficient_RF_nonlinear.npy').squeeze()
         dirname = f'{present}_para_{future}'
         u_poc_present = np.load(f'../../issm/{dirname}/issm/solutions/u_poc_present.npy').squeeze()
         u_glads_present = np.load(f'../../issm/{dirname}/issm/solutions/u_glads_present.npy').squeeze()
@@ -125,7 +117,7 @@ for p in range(N):
     ax.plot(ss[retreat_mask]/1e3, 
         (f_interp_RF - f_interp_RF_present)[retreat_mask], 
         color=colors[3], label='RF future - present', linestyle='solid')
-    ax.set_ylim([-0.1, 0.175])
+    ax.set_ylim([-0.15, 0.185])
     ax.grid()
     ax.set_ylabel(r'$\Delta$Flotation fraction (-)')
     # ax1.set_title(labels[p])
@@ -145,7 +137,7 @@ for p in range(N):
     ax.plot(ss[retreat_mask]/1e3, 
         (N_interp_RF - N_interp_RF_present)[retreat_mask]/1e6, 
         color=colors[3], label='RF future')
-    ax.set_ylim([-1.5, 0.5])
+    ax.set_ylim([-2.5, 1])
     # ax.legend()
     ax.grid()
     ax.set_ylabel(r'$\Delta N$ (MPa)')

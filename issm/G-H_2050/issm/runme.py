@@ -118,31 +118,27 @@ def run_scenarios(basin, year):
     C_glads[levelset<0] = 0
     C_RF[levelset<0] = 0
 
-    # u_poc_present = run_forward(C_poc, Nfields['poc_present']).results.StressbalanceSolution.Vel.squeeze()
-    # np.save('solutions/u_poc_present.npy', u_poc_present)
+    u_poc_present = run_forward(C_poc, Nfields['poc_present']).results.StressbalanceSolution.Vel.squeeze()
+    np.save('solutions/u_poc_present.npy', u_poc_present)
 
-    # u_poc_future = run_forward(C_poc, Nfields['poc_future']).results.StressbalanceSolution.Vel.squeeze()
-    # np.save('solutions/u_poc_future.npy', u_poc_future)
+    u_poc_future = run_forward(C_poc, Nfields['poc_future']).results.StressbalanceSolution.Vel.squeeze()
+    np.save('solutions/u_poc_future.npy', u_poc_future)
 
-    # u_poc = run_forward(C_poc, Nfields['poc']).results.StressbalanceSolution.Vel.squeeze()
-    # np.save('solutions/u_poc_nonlinear.npy', u_poc)
-    # print('max:', np.quantile(u_poc, 0.98))
+    u_glads_present = run_forward(C_glads, Nfields['glads_present']).results.StressbalanceSolution.Vel.squeeze()
+    np.save('solutions/u_glads_present.npy', u_glads_present)
+    print('max:', np.quantile(u_glads_present, 0.98))
 
-    # u_glads_present = run_forward(C_glads, Nfields['glads_present']).results.StressbalanceSolution.Vel.squeeze()
-    # np.save('solutions/u_glads_present.npy', u_glads_present)
-    # print('max:', np.quantile(u_glads_present, 0.98))
+    u_rf_present = run_forward(C_RF, Nfields['rf_present']).results.StressbalanceSolution.Vel.squeeze()
+    np.save('solutions/u_rf_present.npy', u_rf_present)
+    print('max:', np.quantile(u_rf_present, 0.98))
 
-    # u_rf_present = run_forward(C_RF, Nfields['rf_present']).results.StressbalanceSolution.Vel.squeeze()
-    # np.save('solutions/u_rf_present.npy', u_rf_present)
-    # print('max:', np.quantile(u_rf_present, 0.98))
+    u_cv_present = run_forward(C_glads, Nfields['cv_present']).results.StressbalanceSolution.Vel.squeeze()
+    np.save('solutions/u_cv_present.npy', u_cv_present)
+    print('max:', np.quantile(u_cv_present, 0.98))
 
-    # u_cv_present = run_forward(C_glads, Nfields['cv_present']).results.StressbalanceSolution.Vel.squeeze()
-    # np.save('solutions/u_cv_present.npy', u_cv_present)
-    # print('max:', np.quantile(u_cv_present, 0.98))
-
-    # u_rf_future = run_forward(C_RF, Nfields['rf_future']).results.StressbalanceSolution.Vel.squeeze()
-    # np.save('solutions/u_rf_future.npy', u_rf_future)
-    # print('max:', np.quantile(u_rf_future, 0.98))
+    u_rf_future = run_forward(C_RF, Nfields['rf_future']).results.StressbalanceSolution.Vel.squeeze()
+    np.save('solutions/u_rf_future.npy', u_rf_future)
+    print('max:', np.quantile(u_rf_future, 0.98))
 
     u_glads_future = run_forward(C_glads, Nfields['glads_future']).results.StressbalanceSolution.Vel.squeeze()
     np.save('solutions/u_glads_future.npy', u_glads_future)
