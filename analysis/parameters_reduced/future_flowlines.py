@@ -11,7 +11,12 @@ futureruns = [0, 1, 2, 3, 4]
 labels = ['Thwaites', 'PIG', 'Denman', 'Lambert', 'Totten']
 alphabet = ['(a)', '(b)', '(c)']
 
-colors = ['#89b6bc', '#0d7d87', '#ff5a5e', '#c31e23']
+# # colors = ['#89b6bc', '#0d7d87', '#ff5a5e', '#c31e23']
+
+# colors = ['#89b6bc', '#0d7d87', '#ff7966', '#af1e23']
+colors = ['#97B4FF', '#5F45D8', '#FFB000', '#FE6100', 'gray', 'dimgray'] # IBM palette
+
+
 
 fig, axs = plt.subplots(figsize=(12, 10), ncols=3, nrows=5, sharex=True)
 fs = 10
@@ -146,6 +151,7 @@ for p in range(N):
 
     if is_iceflow:
         alpha = 0.9
+        bold = 2.25
         # for ax in [ax1, axs[p,2]]:
         ax = axs[p,2]
         ax.plot(ss[retreat_mask]/1e3, u_interp_poc_present[retreat_mask], label='POC N present', 
@@ -155,16 +161,16 @@ for p in range(N):
         ax.plot(ss[retreat_mask]/1e3, u_interp_glads_present[retreat_mask], label='GlaDS N present', 
             color=colors[0], linestyle='solid', alpha=alpha)
         ax.plot(ss[retreat_mask]/1e3, u_interp_poc_future[retreat_mask], label='POC N future', 
-            color='dimgray', linestyle='dashed', alpha=alpha)
+            color='dimgray', linestyle='dashed', alpha=alpha, linewidth=bold)
         ax.plot(ss[retreat_mask]/1e3, u_interp_rf_future[retreat_mask], label='RF N future', 
-            color=colors[3], linestyle='solid', alpha=alpha)
+            color=colors[3], linestyle='solid', alpha=alpha, linewidth=bold)
         if p in futureruns:
             ax.plot(ss[retreat_mask]/1e3, u_interp_glads_future[retreat_mask], label='GlaDS N future', 
-                color=colors[1], linestyle='solid', alpha=alpha)
+                color=colors[1], linestyle='solid', alpha=alpha, linewidth=bold)
             # ax.set_ylim([0.75, 1])
             # ax.legend()
             ax.grid()
-            ax.set_ylabel('Speed (m/year)')
+            ax.set_ylabel('Speed (m a$^{-1}$)')
             # ax.set_title(labels[p])
             ax.set_ylim(bottom=0)
 
@@ -213,7 +219,7 @@ for p in range(N):
     fig.subplots_adjust(left=0.07, right=0.95, bottom=0.05, top=0.9, wspace=0.3, hspace=0.1)
 
 axs[0,2].legend(bbox_to_anchor=(0, 1, 1., 1.0), loc='lower center', frameon=False, ncols=2)
-for ax in axs[-1]:
-    ax.set_xlabel('Distance from grounding line (km)')
+# for ax in axs[-1]:
+axs[-1,1].set_xlabel('Distance from present grounding line (km)')
 axs[0,0].legend(bbox_to_anchor=(0,1,1,0.2), loc='lower left', frameon=False, ncols=3)
 fig.savefig('figures/future_profiles.png', dpi=400)

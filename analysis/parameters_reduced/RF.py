@@ -12,6 +12,7 @@ import cmocean
 from sklearn.ensemble import RandomForestRegressor
 from scipy import interpolate
 import xarray as xr
+import netCDF4 as nc
 
 from utils.RF import RFDataPara, AISData
 
@@ -312,6 +313,104 @@ def predictContinent(rfData, rfRegr, feature_keys, index, file='features_AIS.pkl
 
     return AISpred
 
+def predictContinentEnsemble(rfData, rfRegr, feature_keys, file='features_AIS.pkl'):
+    feats = np.load(file, allow_pickle=True)
+    print(feats.keys())
+    thick = feats['thickness']
+
+    theta_phys = np.loadtxt('../../issm/theta_physical.csv', delimiter=',', skiprows=1)
+    ntheta = theta_phys.shape[0]
+    dtheta = theta_phys.shape[1]
+    Nall = np.zeros((ntheta, thick.shape[0], thick.shape[1]), dtype=np.float32)
+    # for i in range(ntheta):
+    for i in range(ntheta):
+        print('Step {}/{}'.format(i+1, ntheta))
+        fi = predictContinent(rfData, regr, features, i, file='../features/features_AIS.pkl')
+        Ni = 917*9.81*np.flipud(thick)*(1 - fi)
+        Nall[i] = Ni
+    
+    # Turn np.nan into the default fill value
+    fill = nc.default_fillvals['f4']
+    Nall[np.isnan(Nall)] = fill
+
+    # Compute ensemble mean
+    Nmean = np.mean(Nall, axis=0)
+    Nmean[np.isnan(Nmean)] = fill
+
+    print('Opening BedMachine')    
+    bedmachine = '../../data/bedmachine/BedMachineAntarctica-v3.nc'
+    bm = xr.open_dataset(bedmachine)
+    bmstride = 4
+    x = bm['x'][::bmstride].values
+    y = bm['y'][::bmstride].values
+    dx = x[1] - x[0]
+    dy = y[1] - y[0]
+    print('dx:', dx)
+
+    dsmean = nc.Dataset('AIS_2km_N_mean.nc', 'w', format='NETCDF4')
+    ny,nx = Nmean.shape
+    dsmean.createDimension('x', nx)
+    dsmean.createDimension('y', ny)
+
+    # Set global attributes
+    dsmean.Author = 'Tim Hill (tim_hill_2@sfu.ca)'
+    dsmean.version = '2 December 2025'
+    dsmean.spacing = dx
+
+    x_var = dsmean.createVariable('x', 'i4', ('x',))
+    x_var.units = 'meter'
+    x_var.long_name = 'Cartesian x-coordinate'
+    x_var.standard_name = 'projection_x_coordinate'
+    x_var.set_auto_mask(False)
+    y_var = dsmean.createVariable('y', 'i4', ('y',))
+    y_var.units = 'meter'
+    y_var.long_name = 'Cartesian y-coordinate'
+    y_var.set_auto_mask(False)
+    x_var.standard_name = 'projection_y_coordinate'
+    N_var = dsmean.createVariable('effectivePressure', 'f4', ('y', 'x'), fill_value=fill)
+    N_var.units = 'Pa'
+    N_var.long_name = 'Perturbed-parameter ensemble mean effective pressure'
+    N_var.set_auto_mask(False)
+    
+    # Assign values
+    x_var[:] = x
+    y_var[:] = y
+    N_var[:] = Nmean
+
+    dsmean.close()
+
+    dsall = nc.Dataset('AIS_2km_N_ensemble.nc', 'w', format='NETCDF4')
+    dsall.Author = 'Tim Hill (tim_hill_2@sfu.ca)'
+    dsall.version = '2 December 2025'
+    dsall.spacing = dx
+
+    dsall.createDimension('x', nx)
+    dsall.createDimension('y', ny)
+    dsall.createDimension('ntheta', ntheta)
+    dsall.createDimension('dtheta', 5)
+    x_var = dsall.createVariable('x', 'i4', ('x',))
+    x_var.units = 'meter'
+    x_var.long_name = 'Cartesian x-coordinate'
+    x_var.standard_name = 'projection_x_coordinate'
+    x_var.set_auto_mask(False)
+    y_var = dsall.createVariable('y', 'i4', ('y',))
+    x_var.units = 'meter'
+    y_var.long_name = 'Cartesian y-coordinate'
+    y_var.standard_name = 'projection_y_coordinate'
+    y_var.set_auto_mask(False)
+    N_var = dsall.createVariable('effectivePressure', 'f4', ('ntheta', 'y', 'x'))
+    N_var.units = 'Pa'
+    N_var.long_name = 'Perturbed-parameter ensemble effective pressure'
+    N_var.set_auto_mask(False)
+    theta_var = dsall.createVariable('theta', 'f4', ('ntheta', 'dtheta'))
+    theta_var.long_name = 'GlaDS parameter values (sheet conductivity, '\
+        'channel_conductivity', 'bed bump aspect ratio, sheet-channel width, '\
+        'creep closure enhancement factor'
+    theta_var.set_auto_mask(False)
+
+    theta_var[:] = theta_phys
+    N_var[:] = Nall
+    dsall.close()
 
 def main(basins, features, field='ff', nPerSim=100, k=10):
 
@@ -381,13 +480,18 @@ if __name__=='__main__':
     rfData.normalizeX()
     rfData.normalizeY()
 
-    predictBasins(regr, basins, testBasins, features, field='ff')
+    # predictBasins(regr, basins, testBasins, features, field='ff')
 
-    index = 14
+    # index = 14
 
     # AISfuture = predictContinent(rfData, regr, features, index, file='../features/features_AIS_2300.pkl')
     # np.save('data/AIS_2300_f.npy', AISfuture.astype(np.float32))
+
+
+
     # AISpresent = predictContinent(rfData, regr, features, index, file='../features/features_AIS.pkl')
     # np.save('data/AIS_f.npy', AISpresent.astype(np.float32))
+
+    predictContinentEnsemble(rfData, regr, features, file='../features/features_AIS.pkl')
 
 

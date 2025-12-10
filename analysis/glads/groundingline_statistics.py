@@ -54,7 +54,7 @@ xyall = []
 for basin in basins:
     xyall.extend(glxy[basin])
 xyall = np.array(xyall)
-print(xyall)
+# print(xyall)
 
 Qconstraint = {
     'G-H': np.array([92, 42.5]),
@@ -115,7 +115,7 @@ dthreshold = 50e3
 nsectors = len(basins)
 
 N = np.sum([glxy[basin].shape[0] for basin in basins])
-print('N:', N)
+# print('N:', N)
 d = 100
 
 ncols = 4
@@ -143,12 +143,18 @@ for i in range(len(basins)):
     for j in range(ni):
         xj,yj = xy[j]
         dist = np.sqrt((xc-xj)**2 + (yc-yj)**2)
-        print('min dist:', np.min(dist))
+        # print('min dist:', np.min(dist))
         isclose = dist<dthreshold
         Qmax = np.nanmax(Q[isclose], axis=0)
+        iq = np.nanargmax(np.quantile(Q[isclose], 0.95, axis=1))
+        # print(iq)
+        xi = xc[isclose][iq]
+        yi = yc[isclose][iq]
+        # print(xi.shape)
+        print(xi/1e3, yi/1e3)
         ax = axs.flat[glnumber]
         ax.set_title(labels[basin][j])
-        ax.hist(Qmax)
+        ax.hist(Qmax, edgecolor='k')
         ax.axvline(Qconstraint[basin][j], color='k', label='Literature mean')
 
         modelled_discharge[glnumber] = Qmax
@@ -159,7 +165,7 @@ Q_rel_error = (np.abs(modelled_discharge - constraint_discharge)/constraint_disc
 print('Q_rel_error:', Q_rel_error.shape)
 Q_sum_rel_error = np.mean(Q_rel_error, axis=0)
 print('Q_sum_rel_error:', Q_sum_rel_error.shape)
-print(np.sort(Q_sum_rel_error))
+# print(np.sort(Q_sum_rel_error))
 print('Min error:', np.min(Q_sum_rel_error))
 sim_index = np.argmin(Q_sum_rel_error)
 print('Sim index:', sim_index)
