@@ -755,7 +755,7 @@ if __name__=='__main__':
         'bed',
         # 'surface',
         'thickness',
-        'grounding_line_distance',
+        # 'grounding_line_distance',
         # 'basal_melt',
         'potential',
         'surface_slope',
@@ -778,15 +778,15 @@ if __name__=='__main__':
     rfData.normalizeX()
     rfData.normalizeY()
 
-    basinSensitivity(basins, features, nPerBasin=10000, index=index)
+    # basinSensitivity(basins, features, nPerBasin=10000, index=index)
 
-    factorialBasinSensitivity(basins, features, nPerBasin=10000, index=index)
+    # factorialBasinSensitivity(basins, features, nPerBasin=10000, index=index)
 
     # predictBasins(rfData, regr, features, pred_basins)
 
-    dr2f_full, dr2N_full = featureImportance(rfData, regr, basins, features, index=index)
-    np.save('deltaR2f_full.npy', dr2f_full)
-    np.save('deltaR2N_full.npy', dr2N_full)
+    # dr2f_full, dr2N_full = featureImportance(rfData, regr, basins, features, index=index)
+    # np.save('deltaR2f_full.npy', dr2f_full)
+    # np.save('deltaR2N_full.npy', dr2N_full)
 
     rfData_reduced, regr_reduced = trainRF(basins, reduced_features, nPerBasin=10000,
         feature_importance=False, index=index)

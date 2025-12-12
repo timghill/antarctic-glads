@@ -8,18 +8,13 @@ rhoi = 917.0
 g = 9.81
 
 basins = [
-    'B-C',
     'G-H',
-    'Cp-D',
+    'B-C',
     'C-Cp',
+    'Cp-D',
     'Jpp-K',
-    # 'C-Cp', 
-    # 'Cp-D', 
-    # 'G-H', 
-    # 'Jpp-K', 
-    'J-Jpp', 
     'Ep-F',
-    # 'F-G',
+    'J-Jpp',
 ]
 
 columns = [
@@ -100,30 +95,31 @@ def reportR2(basins, train='ff', split='test', ubThreshold=None):
 
             # Equal-area
             bmgrid = np.load(f'data/CV_{basin}_bmgrid.pkl', allow_pickle=True)
-            R2_f_grid = 1 - np.nanvar(bmgrid['RF'] - bmgrid['glads'])/np.nanvar(bmgrid['glads'])
-            R2_N_grid = 1 - np.nanvar(bmgrid['N_RF'] - bmgrid['N_glads'])/np.nanvar(bmgrid['N_glads'])
+            gmask = np.logical_and(bmgrid['glads']>=0, bmgrid['glads']<=1)
+            R2_f_grid = 1 - np.nanvar(bmgrid['RF'][gmask] - bmgrid['glads'][gmask])/np.nanvar(bmgrid['glads'][gmask])
+            R2_N_grid = 1 - np.nanvar(bmgrid['N_RF'][gmask] - bmgrid['N_glads'][gmask])/np.nanvar(bmgrid['N_glads'][gmask])
 
             table[i][0] = R2_f
             table[i][1] = 100*_percentError(Y_RF[mask], Y_glads[mask])
             table[i][2] = R2_f_grid
-            table[i][3] = 100*_percentError(bmgrid['RF'], bmgrid['glads'])
+            table[i][3] = 100*_percentError(bmgrid['RF'][gmask], bmgrid['glads'][gmask])
 
             Ntable[i][0] = R2_N
             Ntable[i][1] = 100*_percentError(N_RF[mask], N_glads[mask])
             Ntable[i][2] = R2_N_grid
-            Ntable[i][3] = 100*_percentError(bmgrid['N_RF'], bmgrid['N_glads'])
+            Ntable[i][3] = 100*_percentError(bmgrid['N_RF'][gmask], bmgrid['N_glads'][gmask])
 
             # print('Gridded var:', np.nanvar(bmgrid['glads']))
 
             Y_RF_mesh.extend(Y_RF[mask])
-            Y_RF_grid.extend(bmgrid['RF'].flatten())
+            Y_RF_grid.extend(bmgrid['RF'][gmask])
             Y_glads_mesh.extend(Y_glads[mask])
-            Y_glads_grid.extend(bmgrid['glads'].flatten())
+            Y_glads_grid.extend(bmgrid['glads'][gmask])
 
             N_RF_mesh.extend(N_RF[mask])
-            N_RF_grid.extend(bmgrid['N_RF'].flatten())
+            N_RF_grid.extend(bmgrid['N_RF'][gmask])
             N_glads_mesh.extend(N_glads[mask])# - np.mean(N_glads[mask]))
-            N_glads_grid.extend(bmgrid['N_glads'].flatten())
+            N_glads_grid.extend(bmgrid['N_glads'][gmask])
 
         elif train=='N':
             # raise NotImplementedError
@@ -215,12 +211,4 @@ if __name__=='__main__':
 
     print('\nTRAIN ON FLOT FRAC, ubThreshold=200')
     reportR2(basins, train='ff', ubThreshold=200)
-
-    print(80*'*')
-    
-    print('\nTRAIN ON N, ubThreshold=None')
-    reportR2(basins, train='N', ubThreshold=None)
-
-    print('\nTRAIN ON N, ubThreshold=200')
-    reportR2(basins, train='N', ubThreshold=200)
 

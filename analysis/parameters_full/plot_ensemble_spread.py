@@ -10,7 +10,8 @@ linenumbers = [1, 0, 0]
 labels = ['PIG', 'Denman', 'Lambert']
 alphabet = ['(a)', '(b)', '(c)']
 
-colors = ['#89b6bc', '#0d7d87', '#ff5a5e', '#c31e23']
+# colors = ['#89b6bc', '#0d7d87', '#ff5a5e', '#c31e23']
+colors = ['#8CACFF', '#5F45D8', '#FFB000', '#FE6100', 'gray', 'dimgray'] # IBM palette
 
 fig, axs = plt.subplots(figsize=(12, 6), ncols=3, nrows=2, sharex=True)
 fs = 10
@@ -48,26 +49,26 @@ for p in range(N):
 
     ax = axs[0,p]
     ax.plot(ss/1e3, f_interp_glads.mean(axis=1), color=colors[1], 
-        label='Mean')
+        label='Mean', linewidth=2)
+    ax.fill_between(ss/1e3, np.quantile(f_interp_glads, 0.16, axis=1),
+        np.quantile(f_interp_glads, 0.86, axis=1),
+        color=colors[0], alpha=0.7, label='68% interval', edgecolor='none')
     ax.fill_between(ss/1e3, np.quantile(f_interp_glads, 0.025, axis=1),
         np.quantile(f_interp_glads, 0.975, axis=1),
         color=colors[0], alpha=0.4, label='95% interval', edgecolor='none')
-    ax.fill_between(ss/1e3, np.quantile(f_interp_glads, 0.16, axis=1),
-        np.quantile(f_interp_glads, 0.86, axis=1),
-        color=colors[1], alpha=0.4, label='68% interval', edgecolor='none')
     ax.set_ylim([0.6, 1.1])
     ax.set_title(alphabet[p] + ' ' + labels[p], fontsize=fs)
 
     ax = axs[1,p]
     ax.plot(ss/1e3, N_interp_glads.mean(axis=1), color=colors[1], 
-        label='Mean')
+        label='Mean', linewidth=2)
+    ax.fill_between(ss/1e3, np.quantile(N_interp_glads, 0.16, axis=1),
+        np.quantile(N_interp_glads, 0.84, axis=1),
+        color=colors[0], alpha=0.7, label='68% interval', edgecolor='none')
     ax.fill_between(ss/1e3, np.quantile(N_interp_glads, 0.025, axis=1),
         np.quantile(N_interp_glads, 0.975, axis=1),
         color=colors[0], alpha=0.4, label='95% interval', edgecolor='none')
     ax.set_ylim([-2, 6.5])
-    ax.fill_between(ss/1e3, np.quantile(N_interp_glads, 0.16, axis=1),
-        np.quantile(N_interp_glads, 0.86, axis=1),
-        color=colors[1], alpha=0.4, label='68% interval', edgecolor='none')
     ax.set_xlabel('Distance from grounding line (km)')
 
 for ax in axs.flat:

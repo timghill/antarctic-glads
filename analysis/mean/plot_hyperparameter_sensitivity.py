@@ -34,7 +34,7 @@ features = np.array([
     # 'binned_flow_accumulation',
 ])
 
-reduced_features = np.array([0, 2, 3, 5, 6])
+reduced_features = np.array([0, 2, 5, 6])
 features_nothickness = np.array([0,1,3,4,5,6,7,8]).astype(int)
 
 # Sensitivity to particular training basin
@@ -43,7 +43,7 @@ basin_sensitivity_R2 = np.load('data/basin_sensitivity_R2_N.npy')
 # Sensitivity to number of basins
 number_basins_R2 = np.load('data/basin_sensitivity_factorial_R2_N.npy')
 
-fig,(ax1,ax11) = plt.subplots(2, 1, figsize=(4,6), sharex=False, height_ratios=(9, 5))
+fig,(ax1,ax11) = plt.subplots(2, 1, figsize=(4,6), sharex=False, height_ratios=(9, 4))
 axs = (ax1,ax11)
 
 # Bar 1

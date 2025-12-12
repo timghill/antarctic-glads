@@ -77,9 +77,9 @@ def collect_issm_results(resdir, njobs, dtype=np.float32):
             # Convergence check!
             dhdt = (h_s[:, ifinal] - h_s[:, iprev])/dt
             dSdt = (S[:, ifinal] - S[:, iprev])/dt
-            dh_quantile = np.quantile(np.abs(dhdt), 0.95)
+            dh_quantile = np.quantile(np.abs(dhdt), 0.9)
             S_mixed = np.maximum(1, S[:,-1])
-            dS_quantile = np.quantile(np.abs(dSdt/S_mixed), 0.95)
+            dS_quantile = np.quantile(np.abs(dSdt/S_mixed), 0.9)
             print('dh_quantile:', dh_quantile)
             print('dS_quantile:', dS_quantile)
 

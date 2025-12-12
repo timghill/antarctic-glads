@@ -12,9 +12,15 @@ rhofw = 1000.0
 rhoi = 917.0
 g = 9.81
 
-profile_basins = ['G-H', 'G-H', 'C-Cp', 'B-C', 'Jpp-K', 'Cp-D']
-profile_numbers = [0, 1, 0, 0, 0, 0]
-profile_labels = ['Thwaites', 'PIG', 'Denman', 'Lambert', 'Recovery', 'Totten']
+# profile_basins = ['G-H', 'G-H', 'C-Cp', 'B-C', 'Jpp-K', 'Cp-D']
+# profile_numbers = [0, 1, 0, 0, 0, 0]
+# profile_labels = ['Thwaites', 'PIG', 'Denman', 'Lambert', 'Recovery', 'Totten']
+# alphabet = ['(a)', '(b)', '(d)', '(e)', '(c)', '(f)']
+
+
+profile_basins = ['G-H', 'G-H', 'C-Cp', 'B-C', 'Cp-D']
+profile_numbers = [0, 1, 0, 0, 0]
+profile_labels = ['Thwaites', 'PIG', 'Denman', 'Lambert', 'Totten']
 alphabet = ['(a)', '(b)', '(d)', '(e)', '(c)', '(f)']
 
 bedmachine = '../../data/bedmachine/BedMachineAntarctica-v3.nc'

@@ -18,9 +18,13 @@ alphabet = ['(a)', '(b)', '(c)']
 
 fig2, axs = plt.subplots(figsize=(12, 10), ncols=3, nrows=5, sharex=True)
 
+u_rf = []
+u_glads = []
+
 N = len(basins)
 for p in range(N):
     basin = basins[p]
+    print(basin)
 
     N_RF = np.load(f'data/pred_{basin}_N_rf.npy')
     N_CV = np.load(f'data/CV_{basin}_N_rf.npy')
@@ -42,6 +46,13 @@ for p in range(N):
         u_glads_poc = np.load(f'../../issm/{basin}/issm/solutions/u_glads_poc_nonlinear.npy').squeeze()
         u_rf_poc = np.load(f'../../issm/{basin}/issm/solutions/u_rf_poc_nonlinear.npy').squeeze()
         u_poc = np.load(f'../../issm/{basin}/issm/solutions/u_poc_nonlinear.npy').squeeze()
+
+        u_glads.extend(u_glads_glads.squeeze())
+        u_rf.extend(u_glads_rf.squeeze())
+
+        r2 = 1 - np.nanvar(u_glads_rf - u_glads_glads)/np.nanvar(u_glads_glads)
+        print('r2:', r2)
+
 
         vx = np.load(f'../../issm/{basin}/data/geom/vx.npy')
         vy = np.load(f'../../issm/{basin}/data/geom/vy.npy')
@@ -161,3 +172,7 @@ axs[0,2].legend(bbox_to_anchor=(0, 1, 1., 1.0), loc='lower center', frameon=Fals
 axs[-1,1].set_xlabel('Distance from grounding line (km)')
 axs[0,0].legend(bbox_to_anchor=(0,1,1,0.2), loc='lower left', frameon=False, ncols=3)
 fig2.savefig('figures/profiles.png', dpi=400)
+
+
+r2 = 1 - np.nanvar(np.array(u_rf) - np.array(u_glads))/np.nanvar(np.array(u_glads))
+print('OVERALL r2:', r2)
