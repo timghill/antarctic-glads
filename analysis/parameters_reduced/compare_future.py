@@ -17,38 +17,36 @@ def main(basins, years):
 
         mesh = np.load(f'../../issm/{basin}/data/geom/mesh.npy', allow_pickle=True)
         present_mask = np.load(f'../../issm/{basin}/data/geom/ocean_levelset.npy')
-        shape = (len(present_mask),)
+        shape = (len(present_mask), 100)
         future_mask = np.load(f'../../issm/{basin}_{future}/data/geom/ocean_levelset.npy')
         
-        # glads_f_present = np.nan*np.zeros(shape)
-        # glads_f_present[present_mask>0] = np.load(f'data/pred_{basin}_f_glads.npy')
-        glads_f_present = np.nanmean(np.load(f'../../issm/{basin}/glads/ff.npy'), axis=1)
+        glads_f_present = np.nan*np.zeros(shape)
+        glads_f_present[present_mask>0] = np.load(f'data/pred_{basin}_f_glads.npy')
         glads_N_present = np.nan*np.zeros(shape)
         glads_N_present[present_mask>0] = np.load(f'data/pred_{basin}_N_glads.npy')
 
-        # glads_f_future = np.nan*np.zeros(shape)
-        # glads_f_future[future_mask>0] = np.load(f'data/pred_{basin}_{future}_f_glads.npy')
-        glads_f_future = np.nanmean(np.load(f'../../issm/{basin}_{future}/glads/ff.npy'), axis=1)
+        glads_f_future = np.nan*np.zeros(shape)
+        glads_f_future[future_mask>0] = np.load(f'data/pred_{basin}_{future}_f_glads.npy')
         glads_N_future = np.nan*np.zeros(shape)
         glads_N_future[future_mask>0] = np.load(f'data/pred_{basin}_{future}_N_glads.npy')
 
         rf_f_present = np.nan*np.zeros(shape)
-        rf_f_present[present_mask>0] = np.load(f'data/pred_{basin}.npy')
+        rf_f_present[present_mask>0] = np.load(f'data/pred_{basin}_f_rf.npy')
         rf_N_present = np.nan*np.zeros(shape)
         rf_N_present[present_mask>0] = np.load(f'data/pred_{basin}_N_rf.npy')
 
         cv_f_present = np.nan*np.zeros(shape)
-        cv_f_present[present_mask>0] = np.load(f'data/CV_{basin}.npy')
+        cv_f_present[present_mask>0] = np.load(f'data/CV_{basin}_f_rf.npy')
         cv_N_present = np.nan*np.zeros(shape)
         cv_N_present[present_mask>0] = np.load(f'data/CV_{basin}_N_rf.npy')
 
         rf_f_future = np.nan*np.zeros(shape)
-        rf_f_future[future_mask>0] = np.load(f'data/pred_{basin}_{future}.npy')
+        rf_f_future[future_mask>0] = np.load(f'data/pred_{basin}_{future}_f_rf.npy')
         rf_N_future = np.nan*np.zeros(shape)
         rf_N_future[future_mask>0] = np.load(f'data/pred_{basin}_{future}_N_rf.npy')
 
-        u_rf_future = np.load(f'../../issm/{basin}_{future}/issm/solutions/u_rf_future.npy')
-        u_glads_future = np.load(f'../../issm/{basin}_{future}/issm/solutions/u_glads_future.npy')
+        u_rf_future = np.load(f'../../issm/{basin}_para_{future}/issm/solutions/u_rf_future.npy')
+        u_glads_future = np.load(f'../../issm/{basin}_para_{future}/issm/solutions/u_glads_future.npy')
         print('u:', u_rf_future.shape)
 
         pm = np.logical_and(glads_f_present<=1, glads_f_present>=0)

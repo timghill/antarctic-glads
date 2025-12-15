@@ -5,6 +5,7 @@ import time
 
 import numpy as np
 import math
+import itertools
 
 # import scipy.linalg
 from matplotlib import pyplot as plt
@@ -324,6 +325,8 @@ def factorialBasinSensitivity(basins, feature_keys, nPerBasin, index=None, sampl
     sizes = np.arange(1, nbasins)
     R2_ff = np.zeros((len(sizes), nbasins))
     R2_N  = np.zeros((len(sizes), nbasins))
+    R2_ff_std = np.zeros((len(sizes), nbasins))
+    R2_N_std  = np.zeros((len(sizes), nbasins))
     for i in range(nbasins):
     # for i in range(1):
         # trainBasins = basins[:i] + basins[i+1:]
@@ -336,12 +339,16 @@ def factorialBasinSensitivity(basins, feature_keys, nPerBasin, index=None, sampl
         testData.normalizeY(scale=rfData.Yscale)
 
         for j,size in enumerate(sizes):
-            nck = int(math.factorial(nbasins-1)/math.factorial(size)/math.factorial(nbasins-1 - size))
-            print(nck)
-            for k in range(np.minimum(int(nck*1.5), samples)):
-                r2_ff = []
-                r2_N = []
-                sampleBasins = np.random.choice(trainBasins, size=size, replace=False)
+            trainBasinCombinations = list(itertools.combinations(trainBasins, size))
+            nck = len(trainBasinCombinations)
+            print(f'size={size}, ncombinations={nck}')
+            r2_ff = []
+            r2_N = []
+
+            # nck = int(math.factorial(nbasins-1)/math.factorial(size)/math.factorial(nbasins-1 - size))
+            # print(nck)
+            for k in range(nck):
+                sampleBasins = trainBasinCombinations[k]
                 print(sampleBasins)
 
 
@@ -367,10 +374,15 @@ def factorialBasinSensitivity(basins, feature_keys, nPerBasin, index=None, sampl
                 N_rf = pice[levelset>0]*(1 - Yhat)
                 r2_N.append(1 - np.nanvar(N_rf[mask] - N_glads[mask])/np.nanvar(N_glads[mask]))
 
+            print('r2_N:', r2_N)
             R2_ff[j,i] = np.mean(r2_ff)
             R2_N[j, i] = np.mean(r2_N)
+            R2_ff_std[j,i] = np.std(r2_ff)
+            R2_N_std[j, i] = np.std(r2_N)
     np.save('data/basin_sensitivity_factorial_R2_ff.npy', R2_ff)
     np.save('data/basin_sensitivity_factorial_R2_N.npy', R2_N)
+    np.save('data/basin_sensitivity_factorial_R2_ff_std.npy', R2_ff_std)
+    np.save('data/basin_sensitivity_factorial_R2_N_std.npy', R2_N_std)
     
 
 
@@ -780,7 +792,7 @@ if __name__=='__main__':
 
     # basinSensitivity(basins, features, nPerBasin=10000, index=index)
 
-    # factorialBasinSensitivity(basins, features, nPerBasin=10000, index=index)
+    factorialBasinSensitivity(basins, features, nPerBasin=10000, index=index)
 
     # predictBasins(rfData, regr, features, pred_basins)
 
@@ -788,29 +800,29 @@ if __name__=='__main__':
     # np.save('deltaR2f_full.npy', dr2f_full)
     # np.save('deltaR2N_full.npy', dr2N_full)
 
-    rfData_reduced, regr_reduced = trainRF(basins, reduced_features, nPerBasin=10000,
-        feature_importance=False, index=index)
-    dr2f_red, dr2N_red = featureImportance(rfData_reduced, regr_reduced, basins, reduced_features, index=index)
-    np.save('deltaR2f_reduced.npy', dr2f_red)
-    np.save('deltaR2N_reduced.npy', dr2N_red)
+    # rfData_reduced, regr_reduced = trainRF(basins, reduced_features, nPerBasin=10000,
+    #     feature_importance=False, index=index)
+    # dr2f_red, dr2N_red = featureImportance(rfData_reduced, regr_reduced, basins, reduced_features, index=index)
+    # np.save('deltaR2f_reduced.npy', dr2f_red)
+    # np.save('deltaR2N_reduced.npy', dr2N_red)
 
 
-    features_nt = [
-        'bed',
-        'surface',
-        # 'thickness',
-        'grounding_line_distance',
-        'basal_melt',
-        'potential',
-        'surface_slope',
-        'bed_slope',
-        'potential_slope',
-    ]
-    rfData_nt, regr_nt = trainRF(basins, features_nt, nPerBasin=10000,
-        feature_importance=False, index=index)
-    dr2f_nt, dr2N_nt = featureImportance(rfData_nt, regr_nt, basins, features_nt, index=index)
-    np.save('deltaR2f_nothickness.npy', dr2f_nt)
-    np.save('deltaR2N_nothickness.npy', dr2N_nt)
+    # features_nt = [
+    #     'bed',
+    #     'surface',
+    #     # 'thickness',
+    #     'grounding_line_distance',
+    #     'basal_melt',
+    #     'potential',
+    #     'surface_slope',
+    #     'bed_slope',
+    #     'potential_slope',
+    # ]
+    # rfData_nt, regr_nt = trainRF(basins, features_nt, nPerBasin=10000,
+    #     feature_importance=False, index=index)
+    # dr2f_nt, dr2N_nt = featureImportance(rfData_nt, regr_nt, basins, features_nt, index=index)
+    # np.save('deltaR2f_nothickness.npy', dr2f_nt)
+    # np.save('deltaR2N_nothickness.npy', dr2N_nt)
 
     # # plotImportance(features)
 

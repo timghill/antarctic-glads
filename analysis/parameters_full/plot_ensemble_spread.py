@@ -8,13 +8,13 @@ basins = ['G-H', 'C-Cp', 'B-C']
 linenumbers = [1, 0, 0]
 
 labels = ['PIG', 'Denman', 'Lambert']
-alphabet = ['(a)', '(b)', '(c)']
+alphabet = ['(a)', '(b)', '(c)', '(d)', '(e)', '(f)']
 
 # colors = ['#89b6bc', '#0d7d87', '#ff5a5e', '#c31e23']
 colors = ['#8CACFF', '#5F45D8', '#FFB000', '#FE6100', 'gray', 'dimgray'] # IBM palette
 
-fig, axs = plt.subplots(figsize=(12, 6), ncols=3, nrows=2, sharex=True)
-fs = 10
+fig, axs = plt.subplots(figsize=(7, 4), ncols=3, nrows=2, sharex=True)
+fs = 8
 N = len(basins)
 # for p in range(N):
 # for p in [3]:
@@ -49,7 +49,7 @@ for p in range(N):
 
     ax = axs[0,p]
     ax.plot(ss/1e3, f_interp_glads.mean(axis=1), color=colors[1], 
-        label='Mean', linewidth=2)
+        label='Mean', linewidth=1.5)
     ax.fill_between(ss/1e3, np.quantile(f_interp_glads, 0.16, axis=1),
         np.quantile(f_interp_glads, 0.86, axis=1),
         color=colors[0], alpha=0.7, label='68% interval', edgecolor='none')
@@ -57,11 +57,12 @@ for p in range(N):
         np.quantile(f_interp_glads, 0.975, axis=1),
         color=colors[0], alpha=0.4, label='95% interval', edgecolor='none')
     ax.set_ylim([0.6, 1.1])
-    ax.set_title(alphabet[p] + ' ' + labels[p], fontsize=fs)
+    ax.text(0.025, 1.025, alphabet[p] + ' ' + labels[p], fontsize=fs, fontweight='bold',
+        transform=ax.transAxes)
 
     ax = axs[1,p]
     ax.plot(ss/1e3, N_interp_glads.mean(axis=1), color=colors[1], 
-        label='Mean', linewidth=2)
+        label='Mean', linewidth=1.5)
     ax.fill_between(ss/1e3, np.quantile(N_interp_glads, 0.16, axis=1),
         np.quantile(N_interp_glads, 0.84, axis=1),
         color=colors[0], alpha=0.7, label='68% interval', edgecolor='none')
@@ -69,19 +70,28 @@ for p in range(N):
         np.quantile(N_interp_glads, 0.975, axis=1),
         color=colors[0], alpha=0.4, label='95% interval', edgecolor='none')
     ax.set_ylim([-2, 6.5])
-    ax.set_xlabel('Distance from grounding line (km)')
+    ax.text(0.025, 1.025, alphabet[p+3], fontsize=fs, fontweight='bold',
+        transform=ax.transAxes)
 
 for ax in axs.flat:
     ax.set_xlim([200, 0])
     ax.grid()
+    ax.tick_params(labelsize=fs)
 
-axs[0,0].set_ylabel('Flotation fraction (-)')
-axs[1,0].set_ylabel('Effective pressure (MPa)')
+for ax in axs[:,1:].flat:
+    ax.set_yticklabels([])
 
-fig.subplots_adjust(left=0.05, right=0.985, bottom=0.1, top=0.9, wspace=0.1, hspace=0.1)
+axs[0,0].set_ylabel('Flotation fraction (-)', fontsize=fs)
+axs[1,0].set_ylabel('Effective pressure (MPa)', fontsize=fs)
+axs[1,1].set_xlabel('Distance from grounding line (km)', fontsize=fs)
+
+fig.subplots_adjust(left=0.085, right=0.985, bottom=0.125, top=0.875, wspace=0.15, hspace=0.15)
 
 # axs[0,2].legend(bbox_to_anchor=(0, 1, 1., 1.0), loc='lower center', frameon=False, ncols=2)
 # for ax in axs[-1]:
 #     ax.set_xlabel('Distance from grounding line (km)')
-axs[0,0].legend(bbox_to_anchor=(0,1.1,1,0.2), loc='lower left', frameon=False, ncols=3)
+axs[0,0].legend(bbox_to_anchor=(0,1.1,1,0.2), loc='lower left', frameon=False, ncols=3, fontsize=fs)
 fig.savefig('figures/ensemble_spread_profiles.png', dpi=400)
+fig.savefig('figures/ensemble_spread_profiles.pdf')
+fig.savefig('../../manuscript/f02.png', dpi=400)
+fig.savefig('../../manuscript/f02.pdf')

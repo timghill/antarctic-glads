@@ -9,6 +9,7 @@ from matplotlib.gridspec import GridSpec
 import xarray as xr
 import zarr as zr
 
+fs = 8
 index = 301
 # Import bedmachine
 stride = 4
@@ -49,7 +50,7 @@ print(dH_grid.shape)
 dH_grid[mask==0] = np.nan
 
 print('Starting figure')
-fig = plt.figure(figsize=(8, 6))
+fig = plt.figure(figsize=(7, 6*7/8))
 gs = GridSpec(5, 4,
     height_ratios=(100, 100, 2, 100, 100),
     width_ratios=(5, 100, 100, 5),
@@ -70,21 +71,23 @@ cax3 = fig.add_subplot(gs[3:, -1])
 F_present = np.load('data/AIS_f.npy')
 N_present = 917*9.81*thick*(1 - F_present)
 print(N_present.shape)
-Npc = ax1.pcolormesh(bmx, bmy, N_present/1e6, vmin=0, vmax=3, cmap=cmocean.cm.haline)
+Npc = ax1.pcolormesh(bmx, bmy, N_present/1e6, vmin=0, vmax=3, 
+    cmap=cmocean.cm.haline, rasterized=True)
 
 Ncbar = fig.colorbar(Npc, cax=cax1)
-Ncbar.set_label('$N$ (MPa)', fontsize=8)
+Ncbar.set_label('$N$ (MPa)', fontsize=fs)
 cax1.yaxis.tick_left()
 cax1.yaxis.set_label_position('left')
-cax1.tick_params(labelsize=8)
+cax1.tick_params(labelsize=fs)
 
 # 2. Imposed thinning
 dH_grid[np.isnan(N_present)] = np.nan
 cnorm = colors.TwoSlopeNorm(vcenter=0, vmin=-2000, vmax=200)
-Hpc = ax2.pcolormesh(bmy, bmy, dH_grid, norm=cnorm, cmap=cmocean.cm.balance_r)
+Hpc = ax2.pcolormesh(bmy, bmy, dH_grid, norm=cnorm, 
+    cmap=cmocean.cm.balance_r, rasterized=True)
 Hcbar = fig.colorbar(Hpc, cax=cax2, extend='both')
-Hcbar.set_label(r'$\Delta$H (m)', fontsize=8)
-cax2.tick_params(labelsize=8)
+Hcbar.set_label(r'$\Delta$H (m)', fontsize=fs)
+cax2.tick_params(labelsize=fs)
 Hcbar.set_ticks([-2000, -1500, -1000, -500, 0, 50, 100, 150, 200])
 
 # 3. Future N
@@ -92,23 +95,25 @@ F_future = np.load('data/AIS_2300_f.npy')
 thick_future = dH_grid + thick
 N_future = 917*9.81*thick_future*(1 - F_future)
 N_future[np.logical_and(np.isnan(N_future), ~np.isnan(N_present))] = 0
-Npc = ax3.pcolormesh(bmx, bmy, N_future/1e6, vmin=0, vmax=3, cmap=cmocean.cm.haline)
+Npc = ax3.pcolormesh(bmx, bmy, N_future/1e6, vmin=0, vmax=3, 
+    cmap=cmocean.cm.haline, rasterized=True)
 
 # 4. Change in N
 N_delta = N_future - N_present
-cnorm = colors.TwoSlopeNorm(vcenter=0, vmin=-1, vmax=0.5)
-dNpc = ax4.pcolormesh(bmx, bmy, N_delta/1e6, norm=cnorm, cmap=cmocean.cm.diff)
+cnorm = colors.TwoSlopeNorm(vcenter=0, vmin=-1, vmax=0.2)
+dNpc = ax4.pcolormesh(bmx, bmy, N_delta/1e6, norm=cnorm, 
+    cmap=cmocean.cm.diff, rasterized=True)
 
 deltacbar = fig.colorbar(dNpc, cax=cax3, extend='both')
-deltacbar.set_label(r'$\Delta N$ (MPa)', fontsize=8)
-cax3.tick_params(labelsize=8)
-deltacbar.set_ticks([-1, -0.75, -0.5, -0.25, 0, 0.25, 0.5])
+deltacbar.set_label(r'$\Delta N$ (MPa)', fontsize=fs)
+cax3.tick_params(labelsize=fs)
+deltacbar.set_ticks([-1, -0.75, -0.5, -0.25, 0, 0.1, 0.2])
 
 # Scalebar
 R = Rectangle((xmin, ymin), 1000e3, 75e3, facecolor='black')
 ax1.add_patch(R)
 ax1.text(xmin + 500e3, ymin + 75e3, '1000 km', 
-    ha='center', va='bottom', fontsize=8)
+    ha='center', va='bottom', fontsize=fs)
 
 axs = np.array([[ax1, ax2], [ax3, ax4]])
 alphabet = ['(a)', '(b)', '(c)', '(d)']
@@ -116,11 +121,13 @@ for i,ax in enumerate(axs.flat):
     ax.set_aspect('equal')
     ax.set_xlim([xmin, xmax])
     ax.set_ylim([ymin, ymax])
-    ax.tick_params(labelsize=8)
+    ax.tick_params(labelsize=fs)
     ax.spines[['left', 'right', 'bottom', 'top']].set_visible(False)
     ax.set_xticks([])
     ax.set_yticks([])
     ax.text(0.05, 0.9, alphabet[i], transform=ax.transAxes,
-        fontweight='bold', fontsize=8)
+        fontweight='bold', fontsize=fs)
 
 fig.savefig('figures/map_delta.png', dpi=400)
+fig.savefig('../../manuscript/f05.png', dpi=300)
+fig.savefig('../../manuscript/f05.pdf', dpi=300)

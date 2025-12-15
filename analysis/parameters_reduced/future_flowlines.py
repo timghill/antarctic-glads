@@ -18,8 +18,8 @@ colors = ['#97B4FF', '#5F45D8', '#FFB000', '#FE6100', 'gray', 'dimgray'] # IBM p
 
 
 
-fig, axs = plt.subplots(figsize=(12, 10), ncols=3, nrows=5, sharex=True)
-fs = 10
+fig, axs = plt.subplots(figsize=(7, 5.8), ncols=3, nrows=5, sharex=True)
+fs = 7
 N = len(basins)
 for p in range(N):
     if p<2:
@@ -124,7 +124,7 @@ for p in range(N):
         color=colors[3], label='RF future - present', linestyle='solid')
     ax.set_ylim([-0.15, 0.185])
     ax.grid()
-    ax.set_ylabel(r'$\Delta$Flotation fraction (-)')
+    ax.set_ylabel(r'$\Delta f_{\rm{w}}$ (-)', fontsize=fs, labelpad=0)
     # ax1.set_title(labels[p])
     # axs[p,0].set_ylabel(labels[p])
     axs[p,2].text(0.15, 0.95, '{}, {}'.format(labels[p], future), ha='left', va='top',
@@ -145,62 +145,64 @@ for p in range(N):
     ax.set_ylim([-2.5, 1])
     # ax.legend()
     ax.grid()
-    ax.set_ylabel(r'$\Delta N$ (MPa)')
+    ax.set_ylabel(r'$\Delta N$ (MPa)', fontsize=fs, labelpad=0)
         # ax.set_title(labels[p])
 
 
     if is_iceflow:
-        alpha = 0.9
-        bold = 2.25
+        alpha = 0.95
+        bold = 1.5
+        normal = 1
         # for ax in [ax1, axs[p,2]]:
         ax = axs[p,2]
-        ax.plot(ss[retreat_mask]/1e3, u_interp_poc_present[retreat_mask], label='POC N present', 
-            color='gray', linestyle='dashed', alpha=alpha)
-        ax.plot(ss[retreat_mask]/1e3, u_interp_rf_present[retreat_mask], label='RF N present', 
-            color=colors[2], linestyle='solid', alpha=alpha)
-        ax.plot(ss[retreat_mask]/1e3, u_interp_glads_present[retreat_mask], label='GlaDS N present', 
-            color=colors[0], linestyle='solid', alpha=alpha)
-        ax.plot(ss[retreat_mask]/1e3, u_interp_poc_future[retreat_mask], label='POC N future', 
+        ax.plot(ss[retreat_mask]/1e3, u_interp_poc_present[retreat_mask], label=r'$N_{\rm{POC}}$ present', 
+            color='gray', linestyle='dashed', alpha=alpha, linewidth=normal)
+        ax.plot(ss[retreat_mask]/1e3, u_interp_rf_present[retreat_mask], label=r'$N_{\rm{RF}}$ present', 
+            color=colors[2], linestyle='solid', alpha=alpha, linewidth=normal)
+        ax.plot(ss[retreat_mask]/1e3, u_interp_glads_present[retreat_mask], label=r'$N_{\rm{GlaDS}}$ present', 
+            color=colors[0], linestyle='solid', alpha=alpha, linewidth=normal)
+        ax.plot(ss[retreat_mask]/1e3, u_interp_poc_future[retreat_mask], label=r'$N_{\rm{POC}}$ future', 
             color='dimgray', linestyle='dashed', alpha=alpha, linewidth=bold)
-        ax.plot(ss[retreat_mask]/1e3, u_interp_rf_future[retreat_mask], label='RF N future', 
+        ax.plot(ss[retreat_mask]/1e3, u_interp_rf_future[retreat_mask], label=r'$N_{\rm{RF}}$ future', 
             color=colors[3], linestyle='solid', alpha=alpha, linewidth=bold)
         if p in futureruns:
-            ax.plot(ss[retreat_mask]/1e3, u_interp_glads_future[retreat_mask], label='GlaDS N future', 
+            ax.plot(ss[retreat_mask]/1e3, u_interp_glads_future[retreat_mask], label=r'$N_{\rm{GlaDS}}$ future', 
                 color=colors[1], linestyle='solid', alpha=alpha, linewidth=bold)
             # ax.set_ylim([0.75, 1])
             # ax.legend()
             ax.grid()
-            ax.set_ylabel('Speed (m a$^{-1}$)')
+            ax.set_ylabel('Speed (m a$^{-1}$)', fontsize=fs, labelpad=0)
             # ax.set_title(labels[p])
             ax.set_ylim(bottom=0)
 
             # Plot uncertainty
+            ms = 5
             ax.plot([-5, -5], np.quantile(uu_interp_glads_future, (0.025, 0.975)), 
                 color=colors[1], linewidth=1.5, clip_on=False)
             ax.plot([-5, -5], np.quantile(uu_interp_glads_future, (0.16, 0.84)), 
-                color=colors[1], linewidth=3, clip_on=False)
-            ax.plot([-15, -15], np.quantile(uu_interp_rf_future, (0.025, 0.975)), 
+                color=colors[1], linewidth=2.5, clip_on=False)
+            ax.plot([-20, -20], np.quantile(uu_interp_rf_future, (0.025, 0.975)), 
                 color=colors[3], linewidth=1.5, clip_on=False)
-            ax.plot([-15, -15], np.quantile(uu_interp_rf_future, (0.16, 0.84)),
-                color=colors[3], linewidth=3, clip_on=False)
-            ax.plot(-10, u_interp_poc_future[retreat_mask][0], 
+            ax.plot([-20, -20], np.quantile(uu_interp_rf_future, (0.16, 0.84)),
+                color=colors[3], linewidth=2.5, clip_on=False)
+            ax.plot(-12.5, u_interp_poc_future[retreat_mask][0], 
                 marker='s', markerfacecolor='dimgray', markeredgecolor='k',
-                clip_on=False)
-            ax.plot(-10, u_interp_poc_present[retreat_mask][0], 
+                clip_on=False, markersize=ms)
+            ax.plot(-12.5, u_interp_poc_present[retreat_mask][0], 
                 marker='s', color='gray', markeredgecolor='k', 
-                clip_on=False)
-            ax.plot(-15, u_interp_rf_present[retreat_mask][0], 
+                clip_on=False, markersize=ms)
+            ax.plot(-20, u_interp_rf_present[retreat_mask][0], 
                 marker='s', color=colors[2], markeredgecolor='k', 
-                clip_on=False)
+                clip_on=False, markersize=ms)
             ax.plot(-5, u_interp_glads_present[retreat_mask][0], 
                 marker='s', color=colors[0], markeredgecolor='k', 
-                clip_on=False)
+                clip_on=False, markersize=ms)
             ax.plot(-5, u_interp_glads_future[retreat_mask][0], 
                 marker='s', markerfacecolor=colors[1], markeredgecolor='k', 
-                clip_on=False)
-            ax.plot(-15, u_interp_rf_future[retreat_mask][0], 
+                clip_on=False, markersize=ms)
+            ax.plot(-20, u_interp_rf_future[retreat_mask][0], 
                 marker='s', markerfacecolor=colors[3], markeredgecolor='k', 
-                clip_on=False)
+                clip_on=False, markersize=ms)
 
 
     else:
@@ -208,6 +210,7 @@ for p in range(N):
     
     for ax in axs.flat:
         ax.set_xlim([100, 0])
+        ax.tick_params(labelsize=fs)
     
     for i,ax in enumerate(axs[0]):
         ax.text(0.025, 0.95, alphabet[i], transform=ax.transAxes,
@@ -216,10 +219,14 @@ for p in range(N):
 
 
     
-    fig.subplots_adjust(left=0.07, right=0.95, bottom=0.05, top=0.9, wspace=0.3, hspace=0.1)
+    fig.subplots_adjust(left=0.08, right=0.925, bottom=0.075, top=0.89, wspace=0.3, hspace=0.125)
 
-axs[0,2].legend(bbox_to_anchor=(0, 1, 1., 1.0), loc='lower center', frameon=False, ncols=2)
+axs[0,2].legend(bbox_to_anchor=(0, 1, 1., 1.0), loc='lower center', 
+    frameon=False, ncols=2, fontsize=fs)
 # for ax in axs[-1]:
-axs[-1,1].set_xlabel('Distance from present grounding line (km)')
-axs[0,0].legend(bbox_to_anchor=(0,1,1,0.2), loc='lower left', frameon=False, ncols=3)
+axs[-1,1].set_xlabel('Distance from present grounding line (km)', fontsize=fs)
+axs[0,0].legend(bbox_to_anchor=(0,1,1,0.2), loc='lower left', 
+    frameon=False, ncols=3, fontsize=fs)
 fig.savefig('figures/future_profiles.png', dpi=400)
+fig.savefig('../../manuscript/f07.png', dpi=400)
+fig.savefig('../../manuscript/f07.pdf')

@@ -28,7 +28,7 @@ bedmachine = '../../data/bedmachine/BedMachineAntarctica-v3.nc'
 Ncmap = cmocean.cm.matter
 Zcmap = cmocean.cm.gray
 Zalpha = 0.5
-fs = 8
+fs = 7
 
 def plot_error(basins, index=15):
 
@@ -51,7 +51,7 @@ def plot_error(basins, index=15):
     ymax = np.max(yy[~np.isnan(bed)])
 
 
-    fig = plt.figure(figsize=(10, 7))
+    fig = plt.figure(figsize=(7, 5))
     nrows = 2
     ncols = 3
     gs = GridSpec(ncols=ncols, nrows=2*nrows,
@@ -71,7 +71,8 @@ def plot_error(basins, index=15):
     for i,ax in enumerate(axs.flat):
         ax.contour(xx, yy, mask, levels=(0.5,2.5,), colors=('k','k'), linewidths=0.5)
         pc = ax.pcolormesh(xx, yy, bed, cmap=Zcmap, 
-            vmin=-2000, vmax=2000, alpha=Zalpha)
+            vmin=-2000, vmax=2000, alpha=Zalpha,
+            rasterized=True)
         ax.set_aspect('equal')
 
         ax.spines[['left', 'right', 'top', 'bottom']].set_visible(False)
@@ -106,7 +107,6 @@ def plot_error(basins, index=15):
 
         pot_glads = phi_bed + rhoi*g*thick*np.load(f'data/pred_{basin}_f_glads.npy')
         pot_rf = phi_bed + rhoi*g*thick*np.load(f'data/CV_{basin}_f_rf.npy')
-        print(1 - np.nanvar(pot_rf-pot_glads)/np.nanvar(pot_glads))
         phi_rf = np.concatenate((phi_rf, pot_rf.flatten()))
         phi_glads = np.concatenate((phi_glads, pot_glads.flatten()))
 
@@ -114,11 +114,11 @@ def plot_error(basins, index=15):
         mtri = Triangulation(mesh['x'], mesh['y'], mesh['elements']-1)
 
 
-        pc0 = axs[0,0].tripcolor(mtri, yi_glads, vmin=0.75, vmax=1, cmap=cmocean.cm.dense)
-        pc1 = axs[1,0].tripcolor(mtri, ni_glads/1e6, vmin=0, vmax=4, cmap=cmocean.cm.haline)
+        pc0 = axs[0,0].tripcolor(mtri, yi_glads, vmin=0.75, vmax=1, cmap=cmocean.cm.dense, rasterized=True)
+        pc1 = axs[1,0].tripcolor(mtri, ni_glads/1e6, vmin=0, vmax=4, cmap=cmocean.cm.haline, rasterized=True)
 
-        pc2 = axs[0,1].tripcolor(mtri, (yi_rf - yi_glads), vmin=-0.1, vmax=0.1, cmap=cmocean.cm.balance)
-        pc3 = axs[1,1].tripcolor(mtri, (ni_rf - ni_glads)/1e6, vmin=-1, vmax=1, cmap=cmocean.cm.balance)
+        pc2 = axs[0,1].tripcolor(mtri, (yi_rf - yi_glads), vmin=-0.1, vmax=0.1, cmap=cmocean.cm.balance, rasterized=True)
+        pc3 = axs[1,1].tripcolor(mtri, (ni_rf - ni_glads)/1e6, vmin=-1, vmax=1, cmap=cmocean.cm.balance, rasterized=True)
 
         outline = np.load(f'../../data/ANT_Basins/basin_{basin}.npy')
         for ax in axs.flat:
@@ -148,7 +148,7 @@ def plot_error(basins, index=15):
         [-750e3, 0],
         [200e3, -100e3],
         [650e3, 500e3],
-        [-0.6e6, 500e3],
+        # [-0.6e6, 500e3],
         [0, -500e3],
     ])
 
@@ -157,7 +157,7 @@ def plot_error(basins, index=15):
         'right',
         'left',
         'left',
-        'right',
+        # 'right',
         'left',
     ]
 
@@ -166,7 +166,7 @@ def plot_error(basins, index=15):
         'center',
         'bottom',
         'center',
-        'bottom',
+        # 'bottom',
         'top',
     ]
 
@@ -239,7 +239,8 @@ def plot_error(basins, index=15):
     ax1.set_ylim([fmin, 1])
     ax1.set_aspect('equal')
     hb = ax1.hexbin(Y_glads, Y_rf, cmap=cmocean.cm.rain, gridsize=100,
-        extent=(fmin, 1, fmin, 1), linewidths=(0.2,), vmin=0, vmax=3e4)
+        extent=(fmin, 1, fmin, 1), linewidths=(0.2,), vmin=0, vmax=3e4,
+        rasterized=True)
     ax1.grid()
     mask = np.logical_and(Y_glads>=0, Y_glads<=1)
     r2f = 1 - np.nanvar(Y_rf[mask] - Y_glads[mask])/np.nanvar(Y_glads[mask])
@@ -254,7 +255,7 @@ def plot_error(basins, index=15):
     ax2.set_aspect('equal')
     ax2.hexbin(N_glads/1e6, N_rf/1e6, cmap=cmocean.cm.rain,
         gridsize=100, extent=(Nmin, Nmax, Nmin, Nmax), linewidths=(0.1,),
-        vmin=0, vmax=3e4)
+        vmin=0, vmax=3e4, rasterized=True)
     ax2.grid()
     r2N = 1 - np.nanvar(N_rf[mask] - N_glads[mask])/np.nanvar(N_glads[mask])
     print('r2N:', r2N)
@@ -284,6 +285,8 @@ def plot_error(basins, index=15):
     print('r2phi:', r2phi)
 
     fig.savefig('figures/continent_pred_error.png', dpi=400)
+    fig.savefig('../../manuscript/f01.png', dpi=400)
+    fig.savefig('../../manuscript/f01.pdf', dpi=400)
 
 if __name__=='__main__':
     basins = [
