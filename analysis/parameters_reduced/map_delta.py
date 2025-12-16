@@ -8,6 +8,7 @@ import cmocean
 from matplotlib.gridspec import GridSpec
 import xarray as xr
 import zarr as zr
+import scipy.signal
 
 fs = 8
 index = 301
@@ -100,9 +101,17 @@ Npc = ax3.pcolormesh(bmx, bmy, N_future/1e6, vmin=0, vmax=3,
 
 # 4. Change in N
 N_delta = N_future - N_present
+window = 5
+kern = 1./window/window * np.ones((window,window))
+N_delta = scipy.signal.convolve2d(N_delta, kern, mode='same')
 cnorm = colors.TwoSlopeNorm(vcenter=0, vmin=-1, vmax=0.2)
+
+ix = np.concatenate((np.linspace(0, 0.5, 128), np.linspace(0.5, 0.9, 128)))
+cc = cmocean.cm.diff(ix)
+cmap = colors.ListedColormap(cc)
+
 dNpc = ax4.pcolormesh(bmx, bmy, N_delta/1e6, norm=cnorm, 
-    cmap=cmocean.cm.diff, rasterized=True)
+    cmap=cmap, rasterized=True)
 
 deltacbar = fig.colorbar(dNpc, cax=cax3, extend='both')
 deltacbar.set_label(r'$\Delta N$ (MPa)', fontsize=fs)
