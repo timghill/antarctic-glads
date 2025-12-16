@@ -14,7 +14,7 @@ alphabet = ['(a)', '(b)', '(c)', '(d)', '(e)', '(f)']
 colors = ['#8CACFF', '#5F45D8', '#FFB000', '#FE6100', 'gray', 'dimgray'] # IBM palette
 
 fig, axs = plt.subplots(figsize=(7, 4), ncols=3, nrows=2, sharex=True)
-fs = 8
+fs = 7
 N = len(basins)
 # for p in range(N):
 # for p in [3]:
@@ -85,7 +85,7 @@ axs[0,0].set_ylabel('Flotation fraction (-)', fontsize=fs)
 axs[1,0].set_ylabel('Effective pressure (MPa)', fontsize=fs)
 axs[1,1].set_xlabel('Distance from grounding line (km)', fontsize=fs)
 
-fig.subplots_adjust(left=0.085, right=0.985, bottom=0.125, top=0.875, wspace=0.15, hspace=0.15)
+fig.subplots_adjust(left=0.06, right=0.985, bottom=0.1, top=0.9, wspace=0.15, hspace=0.15)
 
 # axs[0,2].legend(bbox_to_anchor=(0, 1, 1., 1.0), loc='lower center', frameon=False, ncols=2)
 # for ax in axs[-1]:
