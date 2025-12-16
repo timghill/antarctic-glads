@@ -79,6 +79,17 @@ for p in range(N):
     f_interp_CV_present = interp(f_CV_present)
     f_interp_RF = interpolate.griddata((mesh['x'][levelfut>0], mesh['y'][levelfut>0]), f_RF, (xx, yy), method='linear')
 
+    def diff_quantile(f1,f2,q):
+        delta = np.zeros((len(levelfut), 100), dtype=np.float32)
+        print('delta:', delta.shape)
+        y1 = np.zeros(delta.shape)
+        y2 = np.zeros(delta.shape)
+        y1[levelfut>0,:] = np.load(f1)
+        y2[levelset>0,:] = np.load(f2)
+        delta = y1 - y2
+        dq = np.quantile(delta, q, axis=1)
+        return dq
+
     if p in futureruns:
         f_glads_future = np.nanmean(np.load(f'../../issm/{basin}/glads/ff.npy'), axis=1)
         f_interp_glads_future = interpolate.griddata((mesh['x'][levelfut>0], mesh['y'][levelfut>0]), 
@@ -86,6 +97,22 @@ for p in range(N):
         N_interp_glads_future = interpolate.griddata((mesh['x'][levelfut>0], mesh['y'][levelfut>0]), 
             np.load(f'data/pred_{basin}_N_glads.npy').mean(axis=1), (xx, yy), method='nearest')
 
+        levels = (0.5 - 0.68/2, 0.5 + 0.68/2)
+        dN_glads_qntl = diff_quantile(f'data/pred_{basin}_N_glads.npy', 
+            f'data/pred_{present}_N_glads.npy', levels)
+        dN_rf_qntl = diff_quantile(f'data/pred_{basin}_N_rf.npy',
+            f'data/pred_{present}_N_rf.npy', levels)
+        df_glads_qntl = diff_quantile(f'data/pred_{basin}_f_glads.npy', 
+            f'data/pred_{present}_f_glads.npy', levels)
+        df_rf_qntl = diff_quantile(f'data/pred_{basin}_f_rf.npy', 
+            f'data/pred_{present}_f_rf.npy', levels)
+
+        xy = (mesh['x'], mesh['y'])
+        dN_glads_qntl = interpolate.griddata(xy, dN_glads_qntl.T, (xx,yy), method='nearest').T
+        dN_rf_qntl = interpolate.griddata(xy, dN_rf_qntl.T, (xx,yy), method='nearest').T
+        df_glads_qntl = interpolate.griddata(xy, df_glads_qntl.T, (xx,yy), method='nearest').T
+        df_rf_qntl = interpolate.griddata(xy, df_rf_qntl.T, (xx,yy), method='nearest').T
+        
     if is_iceflow:
         uinterp = lambda z: interpolate.griddata((mesh['x'], mesh['y']), z, (xx, yy), method='linear')
         u_interp_glads_present = uinterp(u_glads_present)
@@ -114,11 +141,17 @@ for p in range(N):
     # ax.plot(ss/1e3, f_interp_glads_present, color=colors[0], 
     #     label='GlaDS-present')
     if p in futureruns:
+        ax.fill_between(ss[retreat_mask]/1e3,
+            df_glads_qntl[0,retreat_mask], df_glads_qntl[1,retreat_mask], color=colors[1],
+            alpha=0.25)
         ax.plot(ss[retreat_mask]/1e3, 
             (f_interp_glads_future - f_interp_glads_present)[retreat_mask], 
             color=colors[1], label='GlaDS future - present', linestyle='solid')
     # ax.plot(ss/1e3, f_interp_RF_present, color=colors[2], 
     #     label='RF present')
+    ax.fill_between(ss[retreat_mask]/1e3,
+        df_rf_qntl[0,retreat_mask], df_rf_qntl[1,retreat_mask], color=colors[3],
+        alpha=0.25)
     ax.plot(ss[retreat_mask]/1e3, 
         (f_interp_RF - f_interp_RF_present)[retreat_mask], 
         color=colors[3], label='RF future - present', linestyle='solid')
@@ -134,11 +167,17 @@ for p in range(N):
     ax = axs[p,1]
     # ax.plot(ss/1e3, N_interp_glads_present/1e6, color=colors[0], label='GlaDS present')
     if p in futureruns:
+        ax.fill_between(ss[retreat_mask]/1e3,
+            dN_glads_qntl[0,retreat_mask]/1e6, dN_glads_qntl[1,retreat_mask]/1e6, color=colors[1],
+            alpha=0.25)
         ax.plot(ss[retreat_mask]/1e3, 
             (N_interp_glads_future - N_interp_glads_present)[retreat_mask]/1e6, 
             color=colors[1], label='GlaDS future')
     # ax.plot(ss/1e3, N_interp_RF_present/1e6, color=colors[2], 
     #     label='RF present')
+    ax.fill_between(ss[retreat_mask]/1e3,
+        dN_rf_qntl[0,retreat_mask]/1e6, dN_rf_qntl[1,retreat_mask]/1e6, color=colors[3],
+        alpha=0.25)
     ax.plot(ss[retreat_mask]/1e3, 
         (N_interp_RF - N_interp_RF_present)[retreat_mask]/1e6, 
         color=colors[3], label='RF future')
