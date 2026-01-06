@@ -54,6 +54,9 @@ for p in range(N):
         r2 = 1 - np.nanvar(u_glads_rf - u_glads_glads)/np.nanvar(u_glads_glads)
         print('r2:', r2)
 
+        r2 = 1 - np.nanvar(u_glads_cv - u_glads_glads)/np.nanvar(u_glads_glads)
+        print('r2:', r2)
+
 
         vx = np.load(f'../../issm/{basin}/data/geom/vx.npy')
         vy = np.load(f'../../issm/{basin}/data/geom/vy.npy')
@@ -100,7 +103,7 @@ for p in range(N):
     ax = axs[p,1]
     ax.plot(ss/1e3, N_interp_glads/1e6, color=colors[1], label='GlaDS')
     ax.plot(ss/1e3, N_interp_RF/1e6, color=colors[3], label='RF', linestyle='solid')
-    ax.plot(ss/1e3, N_interp_CV/1e6, color=colors[2], label='CV', linestyle='dashed')
+    ax.plot(ss/1e3, N_interp_CV/1e6, color=colors[2], label='CV', linestyle='solid')
     ax.set_ylim([0, 4])
     # ax.legend()
     ax.grid()
@@ -116,7 +119,7 @@ for p in range(N):
     ax = axs[p,0]
     ax.plot(ss/1e3, f_interp_glads, color=colors[1], label='GlaDS')
     ax.plot(ss/1e3, f_interp_RF, color=colors[3], label='RF')
-    ax.plot(ss/1e3, f_interp_CV, color=colors[2], label='CV', linestyle='dashed')
+    ax.plot(ss/1e3, f_interp_CV, color=colors[2], label='CV', linestyle='solid')
     ax.set_ylim([0.6, 1])
     ax.grid()
     ax.set_ylabel(r'$f_{\rm{w}}$ (-)', fontsize=fs)
@@ -136,7 +139,7 @@ for p in range(N):
         ax.plot(ss/1e3, vv_interp, color='black', label='Observed', linewidth=1.5)
         # ax.plot(ss/1e3, u_interp_poc, label='C_poc, N_poc', color=colors[0], linestyle=linestyles[0])
         ax.plot(ss/1e3, u_interp_glads_glads, label=r'$C_{\rm{GlaDS}}$, $N_{\rm{GlaDS}}$', color=colors[1], linestyle='solid', alpha=alpha, zorder=4, linewidth=1.25)
-        ax.plot(ss/1e3, u_interp_glads_rf, label=r'$C_{\rm{GlaDS}}$, $N_{\rm{RF}}$', color=colors[2], linestyle='solid', alpha=alpha, zorder=5, linewidth=1)
+        ax.plot(ss/1e3, u_interp_glads_rf, label=r'$C_{\rm{GlaDS}}$, $N_{\rm{RF}}$', color=colors[3], linestyle='dashed', alpha=alpha, zorder=5, linewidth=1)
         ax.plot(ss/1e3, u_interp_glads_cv, label=r'$C_{\rm{GlaDS}}$, $N_{\rm{CV}}$', color=colors[2], linestyle='dashed', alpha=alpha, zorder=5, linewidth=0.75)
         ax.plot(ss/1e3, u_interp_glads_poc, label=r'$C_{\rm{GlaDS}}$, $N_{\rm{POC}}$', color='dimgray', linestyle='dashed', alpha=alpha, zorder=5, linewidth=0.75)
         # ax.plot(ss/1e3, u_interp_rf_glads, label='C_RF, N_glads', color=colors[1], linestyle=linestyles[2])
