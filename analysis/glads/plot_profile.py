@@ -4,8 +4,8 @@ from matplotlib.tri import Triangulation
 import cmocean
 from scipy.interpolate import griddata
 
-basin = 'G-H'
-flowlines = [0,1]
+basin = 'Cp-D'
+flowlines = [0]
 
 mesh = np.load(f'../../issm/{basin}/data/geom/mesh.npy', allow_pickle=True)
 levelset = np.load(f'../../issm/{basin}/data/geom/ocean_levelset.npy')

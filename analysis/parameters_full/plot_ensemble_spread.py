@@ -18,25 +18,44 @@ fs = 7
 N = len(basins)
 # for p in range(N):
 # for p in [3]:
+# def pad(z, levelset, fill=1):
+#     zfull = fill*np.ones(levelset.shape, dtype=z.dtype)
+#     zfull[levelset>0,:] = z
+#     return zfull
+
 for p in range(N):
     basin = basins[p]
-
-    # N_RF = np.load(f'data/pred_{basin}_N_rf.npy')
-    N_glads = np.load(f'data/pred_{basin}_N_glads.npy')/1e6
-    print(N_glads.shape)
-    # N_CV = np.load(f'data/CV_{basin}_N_rf.npy')
-
-    # f_RF = np.load(f'data/pred_{basin}_f_rf.npy')
-    # f_CV = np.load(f'data/CV_{basin}_f_rf.npy')
-    f_glads = np.load(f'data/pred_{basin}_f_glads.npy')
-    print(f_glads.shape)
-
     mesh = np.load(f'../../issm/{basin}/data/geom/mesh.npy', allow_pickle=True)
     levelset = np.load(f'../../issm/{basin}/data/geom/ocean_levelset.npy')
 
-    interp = lambda z: interpolate.griddata((mesh['x'][levelset>0], mesh['y'][levelset>0]), z, (xx, yy), method='linear')
+    nv = mesh['numberofvertices']
+    npara = 100
+    f_glads = np.ones((nv, npara), dtype=np.float32)
+    f_glads[levelset>0,:] = np.load(f'data/pred_{basin}_f_glads.npy')
+    print(f_glads.shape)
+
+    N_glads = np.zeros((nv, npara), dtype=np.float32)
+    N_glads[levelset>0,:] = np.load(f'data/pred_{basin}_N_glads.npy')/1e6
+
+    f_glads[f_glads>1] = 1
+    f_glads[f_glads<0] = 0
+
+
+    interp = lambda z: interpolate.griddata((mesh['x'], mesh['y']), z, (xx, yy), method='nearest')
     flowline = np.load('../../issm/{}/data/geom/flowline_{:02d}.npy'.format(basin,linenumbers[p]))
     ss,xx,yy = flowline
+
+
+    xdir = (xx[1] - xx[0])/(ss[1] - ss[0])
+    ydir = (yy[1] - yy[0])/(ss[1] - ss[0])
+    snew = np.linspace(-50e3, 200e3, 126)
+    xnew = xx[0] + xdir*snew
+    ynew = yy[0] + ydir*snew
+
+    # xx = xnew
+    # yy = ynew
+    # ss = snew
+
     N_interp_glads = interp(N_glads)
     print(N_interp_glads.shape)
     # N_interp_RF = interp(N_RF)
