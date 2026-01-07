@@ -27,13 +27,27 @@ for p in range(N):
     basin = basins[p]
     print(basin)
 
-    N_RF = np.load(f'data/pred_{basin}_N_rf.npy')
-    N_CV = np.load(f'data/CV_{basin}_N_rf.npy')
-    N_glads = np.load(f'data/pred_{basin}_N_glads.npy')
+    mesh = np.load(f'../../issm/{basin}/data/geom/mesh.npy', allow_pickle=True)
+    levelset = np.load(f'../../issm/{basin}/data/geom/ocean_levelset.npy')
 
-    f_RF = np.load(f'data/pred_{basin}.npy')
-    f_CV = np.load(f'data/CV_{basin}.npy')
+    def load(fname, fill=0):
+        z = np.load(fname)
+        zpad = np.full(len(levelset), fill, dtype=np.float32)
+        zpad[levelset>0] = z
+        return zpad
+
+    N_RF = load(f'data/pred_{basin}_N_rf.npy')
+    N_CV = load(f'data/CV_{basin}_N_rf.npy')
+    N_glads = load(f'data/pred_{basin}_N_glads.npy')
+
+    f_RF = load(f'data/pred_{basin}.npy', fill=1)
+    f_CV = load(f'data/CV_{basin}.npy', fill=1)
     f_glads = np.load(f'../../issm/{basin}/glads/ff.npy').mean(axis=1)
+
+    print('f_RF:', f_RF, f_RF[levelset>0])
+
+    f_glads[f_glads>1] = 1
+    f_glads[f_glads<0] = 0
 
     try:
         C_glads = np.load(f'../../issm/{basin}/issm/solutions/friction_coefficient_glads_nonlinear.npy').squeeze()
@@ -66,26 +80,24 @@ for p in range(N):
     except:
         is_iceflow = False
 
-    mesh = np.load(f'../../issm/{basin}/data/geom/mesh.npy', allow_pickle=True)
-    levelset = np.load(f'../../issm/{basin}/data/geom/ocean_levelset.npy')
-    f_glads = f_glads[levelset>0]
-
 
     flowline = np.load('../../issm/{}/data/geom/flowline_{:02d}.npy'.format(basin,linenumbers[p]))
     ss,xx,yy = flowline
-    N_interp_RF = interpolate.griddata((mesh['x'][levelset>0], mesh['y'][levelset>0]), N_RF, (xx, yy), method='linear')
-    N_interp_CV = interpolate.griddata((mesh['x'][levelset>0], mesh['y'][levelset>0]), N_CV, (xx, yy), method='linear')
-    N_interp_glads = interpolate.griddata((mesh['x'][levelset>0], mesh['y'][levelset>0]), N_glads, (xx, yy), method='linear')
+    N_interp_RF = interpolate.griddata((mesh['x'], mesh['y']), N_RF, (xx, yy), method='nearest')
+    N_interp_CV = interpolate.griddata((mesh['x'], mesh['y']), N_CV, (xx, yy), method='nearest')
+    N_interp_glads = interpolate.griddata((mesh['x'], mesh['y']), N_glads, (xx, yy), method='nearest')
 
 
-    f_interp_RF = interpolate.griddata((mesh['x'][levelset>0], mesh['y'][levelset>0]), f_RF, (xx, yy), method='linear')
-    f_interp_CV = interpolate.griddata((mesh['x'][levelset>0], mesh['y'][levelset>0]), f_CV, (xx, yy), method='linear')
-    f_interp_glads = interpolate.griddata((mesh['x'][levelset>0], mesh['y'][levelset>0]), f_glads, (xx, yy), method='linear')
+    f_interp_RF = interpolate.griddata((mesh['x'], mesh['y']), f_RF, (xx, yy), method='nearest')
+    f_interp_CV = interpolate.griddata((mesh['x'], mesh['y']), f_CV, (xx, yy), method='nearest')
+    f_interp_glads = interpolate.griddata((mesh['x'], mesh['y']), f_glads, (xx, yy), method='nearest')
+
+    print('f_interp_RF:', f_interp_RF)
 
     if is_iceflow:
         method = 'linear'
-        C_interp_glads = interpolate.griddata((mesh['x'][levelset>0], mesh['y'][levelset>0]), C_glads[levelset>0], (xx, yy), method='linear')
-        C_interp_RF = interpolate.griddata((mesh['x'][levelset>0], mesh['y'][levelset>0]), C_RF[levelset>0], (xx, yy), method='linear')
+        C_interp_glads = interpolate.griddata((mesh['x'], mesh['y']), C_glads, (xx, yy), method='linear')
+        C_interp_RF = interpolate.griddata((mesh['x'], mesh['y']), C_RF, (xx, yy), method='linear')
 
         u_interp_glads_glads = interpolate.griddata((mesh['x'][levelset>0], mesh['y'][levelset>0]), u_glads_glads[levelset>0], (xx, yy), method=method)
         u_interp_rf_rf = interpolate.griddata((mesh['x'][levelset>0], mesh['y'][levelset>0]), u_rf_rf[levelset>0], (xx, yy), method=method)
