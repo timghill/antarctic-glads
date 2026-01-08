@@ -61,7 +61,7 @@ ax.set_xlim([0, 2.2])
 yticklabels = []
 for i in range(len(features)):
     if i in reduced_features:
-        fi = features[i] + r'$^*$'
+        fi = features[i]
     else:
         fi = features[i]
     yticklabels.append(fi)
