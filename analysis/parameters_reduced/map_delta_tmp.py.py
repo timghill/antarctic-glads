@@ -31,19 +31,19 @@ with xr.open_dataset('../../data/bedmachine/BedMachineAntarctica-v3.nc') as bm:
     bmy = bm['y'][::stride].to_numpy()[::-1]
     bed = np.flipud(bm['bed'][::stride, ::stride].to_numpy())
     mask = np.flipud(bm['mask'][::stride, ::stride].to_numpy())
-    thick = np.flipud(bm['thickness'][::stride, ::stride].to_numpy())
+    # thick = np.flipud(bm['thickness'][::stride, ::stride].to_numpy())
 
-print('bmy:', bmy)
+# print('bmy:', bmy)
 
-print('Reading MALI thickness change')
-# Import thinning dataset
-root = zr.open('../../data/Hillebrand_geometry/expAE03_04_q05m50_state.zarr')
-dH = root['thickness'][index] - root['thickness'][0]
+# print('Reading MALI thickness change')
+# # Import thinning dataset
+# root = zr.open('../../data/Hillebrand_geometry/expAE03_04_q05m50_state.zarr')
+# dH = root['thickness'][index] - root['thickness'][0]
 
-initroot = zr.open('../../data/Hillebrand_geometry/AIS_4to20km_r01_20220907_relaxed_q5.zarr')
-malix = initroot['xCell']
-maliy = initroot['yCell']
-malixy = (malix, maliy)
+# initroot = zr.open('../../data/Hillebrand_geometry/AIS_4to20km_r01_20220907_relaxed_q5.zarr')
+# malix = initroot['xCell']
+# maliy = initroot['yCell']
+# malixy = (malix, maliy)
 
 
 xx,yy = np.meshgrid(bmx, bmy)
@@ -56,10 +56,10 @@ ymax = np.max(xx[~np.isnan(bed)])
 
 
 # Interpolate onto bedmachine grid for plotting purpose
-print('Gridding MALI thickness change')
-dH_grid = griddata(malixy, dH, (xx, yy))
-print(dH_grid.shape)
-dH_grid[mask==0] = np.nan
+# print('Gridding MALI thickness change')
+# dH_grid = griddata(malixy, dH, (xx, yy))
+# print(dH_grid.shape)
+# dH_grid[mask==0] = np.nan
 
 print('Starting figure')
 fig = plt.figure(figsize=(7, 6*7/8))
@@ -80,54 +80,54 @@ cax2 = fig.add_subplot(gs[:2, -1])
 cax3 = fig.add_subplot(gs[3:, -1])
 
 # 1. Present N
-F_present = np.load('data/AIS_f.npy')
-N_present = 917*9.81*thick*(1 - F_present)
-print(N_present.shape)
-Npc = ax1.pcolormesh(bmx, bmy, N_present/1e6, vmin=0, vmax=3, 
-    cmap=cmocean.cm.haline, rasterized=True)
+# F_present = np.load('data/AIS_f.npy')
+# N_present = 917*9.81*thick*(1 - F_present)
+# print(N_present.shape)
+# Npc = ax1.pcolormesh(bmx, bmy, N_present/1e6, vmin=0, vmax=3, 
+#     cmap=cmocean.cm.haline, rasterized=True)
 
-Ncbar = fig.colorbar(Npc, cax=cax1)
-Ncbar.set_label('$N$ (MPa)', fontsize=fs)
-cax1.yaxis.tick_left()
-cax1.yaxis.set_label_position('left')
-cax1.tick_params(labelsize=fs)
+# Ncbar = fig.colorbar(Npc, cax=cax1)
+# Ncbar.set_label('$N$ (MPa)', fontsize=fs)
+# cax1.yaxis.tick_left()
+# cax1.yaxis.set_label_position('left')
+# cax1.tick_params(labelsize=fs)
 
-# 2. Imposed thinning
-dH_grid[np.isnan(N_present)] = np.nan
-cnorm = colors.TwoSlopeNorm(vcenter=0, vmin=-2000, vmax=200)
-Hpc = ax2.pcolormesh(bmy, bmy, dH_grid, norm=cnorm, 
-    cmap=cmocean.cm.balance_r, rasterized=True)
-Hcbar = fig.colorbar(Hpc, cax=cax2, extend='both')
-Hcbar.set_label(r'$\Delta$H (m)', fontsize=fs)
-cax2.tick_params(labelsize=fs)
-Hcbar.set_ticks([-2000, -1500, -1000, -500, 0, 50, 100, 150, 200])
+# # 2. Imposed thinning
+# dH_grid[np.isnan(N_present)] = np.nan
+# cnorm = colors.TwoSlopeNorm(vcenter=0, vmin=-2000, vmax=200)
+# Hpc = ax2.pcolormesh(bmy, bmy, dH_grid, norm=cnorm, 
+#     cmap=cmocean.cm.balance_r, rasterized=True)
+# Hcbar = fig.colorbar(Hpc, cax=cax2, extend='both')
+# Hcbar.set_label(r'$\Delta$H (m)', fontsize=fs)
+# cax2.tick_params(labelsize=fs)
+# Hcbar.set_ticks([-2000, -1500, -1000, -500, 0, 50, 100, 150, 200])
 
-# 3. Future N
-F_future = np.load('data/AIS_2300_f.npy')
-thick_future = dH_grid + thick
-N_future = 917*9.81*thick_future*(1 - F_future)
-N_future[np.logical_and(np.isnan(N_future), ~np.isnan(N_present))] = 0
-Npc = ax3.pcolormesh(bmx, bmy, N_future/1e6, vmin=0, vmax=3, 
-    cmap=cmocean.cm.haline, rasterized=True)
+# # 3. Future N
+# F_future = np.load('data/AIS_2300_f.npy')
+# thick_future = dH_grid + thick
+# N_future = 917*9.81*thick_future*(1 - F_future)
+# N_future[np.logical_and(np.isnan(N_future), ~np.isnan(N_present))] = 0
+# Npc = ax3.pcolormesh(bmx, bmy, N_future/1e6, vmin=0, vmax=3, 
+#     cmap=cmocean.cm.haline, rasterized=True)
 
-# 4. Change in N
-N_delta = N_future - N_present
-window = 5
-kern = 1./window/window * np.ones((window,window))
-N_delta = scipy.signal.convolve2d(N_delta, kern, mode='same')
-cnorm = colors.TwoSlopeNorm(vcenter=0, vmin=-1, vmax=0.2)
+# # 4. Change in N
+# N_delta = N_future - N_present
+# window = 5
+# kern = 1./window/window * np.ones((window,window))
+# N_delta = scipy.signal.convolve2d(N_delta, kern, mode='same')
+# cnorm = colors.TwoSlopeNorm(vcenter=0, vmin=-1, vmax=0.2)
 
-ix = np.concatenate((np.linspace(0, 0.5, 128), np.linspace(0.5, 0.9, 128)))
-cc = cmocean.cm.diff(ix)
-cmap = colors.ListedColormap(cc)
+# ix = np.concatenate((np.linspace(0, 0.5, 128), np.linspace(0.5, 0.9, 128)))
+# cc = cmocean.cm.diff(ix)
+# cmap = colors.ListedColormap(cc)
 
-dNpc = ax4.pcolormesh(bmx, bmy, N_delta/1e6, norm=cnorm, 
-    cmap=cmap, rasterized=True)
+# dNpc = ax4.pcolormesh(bmx, bmy, N_delta/1e6, norm=cnorm, 
+#     cmap=cmap, rasterized=True)
 
-deltacbar = fig.colorbar(dNpc, cax=cax3, extend='both')
-deltacbar.set_label(r'$\Delta N$ (MPa)', fontsize=fs)
-cax3.tick_params(labelsize=fs)
-deltacbar.set_ticks([-1, -0.75, -0.5, -0.25, 0, 0.05, 0.1, 0.15, 0.2])
+# deltacbar = fig.colorbar(dNpc, cax=cax3, extend='both')
+# deltacbar.set_label(r'$\Delta N$ (MPa)', fontsize=fs)
+# cax3.tick_params(labelsize=fs)
+# deltacbar.set_ticks([-1, -0.75, -0.5, -0.25, 0, 0.05, 0.1, 0.15, 0.2])
 
 # Scalebar
 R = Rectangle((xmin, ymin), 1000e3, 75e3, facecolor='black')
@@ -151,7 +151,7 @@ for i,ax in enumerate(axs.flat):
 for basin in basins:
     outline = np.load(f'../../data/ANT_Basins/basin_{basin}.npy')
     for ax in axs.flat:
-        ax.plot(outline[:,0], outline[:,1], color='k', linestyle='solid', linewidth=1)
+        ax.plot(outline[:,0], outline[:,1], color='k', linestyle='solid', linewidth=0.5)
 
 
 dxytext = np.array([
@@ -179,11 +179,12 @@ ax.text(2.25e6, -2.0e6, 'Totten', ha='right', va='top', fontsize=fs-1)
 ax.plot([2.25e6, 2265369.0], [-2.0e6, -1003529.0], color='k', linewidth=0.5)
 ax.text(2.25e6, 2.25e6, 'West Ice\nShelf', ha='right', va='bottom', fontsize=fs-1)
 ax.plot([2.25e6, 2.62e6], [2.25e6, 0.26e6], color='k', linewidth=0.5)
-ax.text(-1.5e6, -1.5e6, 'WAIS', ha='right', va='center', fontsize=fs-1)
+ax.text(-2.e6, -1.75, 'WAIS', ha='right', va='center', fontsize=fs-1)
 ax.text(-1.4e6, 1.0e6, 'Filchner-\nRonne', va='bottom', ha='center', fontsize=fs-1)
 ax.text(0.85e6, -2.36e6, 'Cook', va='top', ha='center', fontsize=fs-1)
-ax.plot([0.85e6, 0.95e6], [-2.36e6, -2.0e6], color='k', linewidth=0.5)
 
 fig.savefig('figures/map_delta.png', dpi=400)
-fig.savefig('../../manuscript/f05.png', dpi=300)
-fig.savefig('../../manuscript/f05.pdf', dpi=300)
+# fig.savefig('../../manuscript/f05.png', dpi=300)
+# fig.savefig('../../manuscript/f05.pdf', dpi=300)
+
+# plt.show()
