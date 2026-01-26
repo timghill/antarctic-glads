@@ -118,7 +118,8 @@ def set_para(effective_pressure, initialization=None):
     return md
 
 def run_friction_inversion(effective_pressure, initialization=None,
-    coefficients=None, min_para=1, max_para=1e4, x0=None, B=None):
+    coefficients=None, min_para=1, max_para=1e4, x0=None, B=None,
+    include_floating=False):
 
     md = set_para(effective_pressure,initialization=initialization)
     if B is not None:
@@ -144,7 +145,8 @@ def run_friction_inversion(effective_pressure, initialization=None,
     md.inversion.cost_functions_coefficients[:,0]=coefficients[0]
     md.inversion.cost_functions_coefficients[:,1]=coefficients[1]
     md.inversion.cost_functions_coefficients[md.inversion.vel_obs<0.1, 0:2] = 0
-    md.inversion.cost_functions_coefficients[md.mask.ocean_levelset<0, 0:2] = 0
+    if not include_floating:
+        md.inversion.cost_functions_coefficients[md.mask.ocean_levelset<0, 0:2] = 0
     md.inversion.cost_functions_coefficients[:,2]=coefficients[2]
 
     # Controls
@@ -217,13 +219,13 @@ def run_Lcurve_scenarios(basin, coefficients=None):
     if not os.path.exists('solutions'):
         os.makedirs('solutions')
 
-    Jpoc = Lcurve(Nfields['poc'], coefficients, alpha)
+    Jpoc = Lcurve(Nfields['poc'], coefficients, alpha, include_floating=True)
     np.save('solutions/Jpoc.npy', Jpoc)
 
-    Jglads = Lcurve(Nfields['glads'], coefficients, alpha)
+    Jglads = Lcurve(Nfields['glads'], coefficients, alpha, include_floating=True)
     np.save('solutions/Jglads.npy', Jglads)
 
-    Jrf = Lcurve(Nfields['rf'], coefficients, alpha)
+    Jrf = Lcurve(Nfields['rf'], coefficients, alpha, include_floating=True)
     np.save('solutions/Jrf.npy', Jrf)
 
     plot_Lcurve_scenarios()
