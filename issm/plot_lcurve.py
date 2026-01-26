@@ -76,5 +76,5 @@ axs[0].legend(bbox_to_anchor=(0,1.1,0.2,1), loc='lower left',
 for ax in axs:
     ax.tick_params(labelsize=8)
 
-fig.savefig('lcurve.png', dpi=400)
+fig.savefig('tmp.png', dpi=400)
 

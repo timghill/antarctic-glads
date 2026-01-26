@@ -1,8 +1,5 @@
 """
-Plot grounding line discharge statistics and compare to literature values
-
-TODO: find max within specified xy-bounds to make sure it really is
-the grounding line discharge (more work)
+Plot grounding line channel discharge statistics and compare to literature values
 """
 
 import numpy as np
@@ -26,7 +23,10 @@ basins = [
     'J-Jpp',
 ]
 
+fs = 8
 
+# Approximate coordinates of grounding lines
+# From Ehrenfeucht et al. (2025, Geophys Res Letters)
 glxy = {
     'G-H': np.array([
         [-1.5205e6, -0.4637e6],
@@ -56,6 +56,7 @@ for basin in basins:
 xyall = np.array(xyall)
 # print(xyall)
 
+# Mean Q values from the literature. See Table A1 for sources
 Qconstraint = {
     'G-H': np.array([92, 42.5]),
     'B-C': np.array([202]),
@@ -66,51 +67,17 @@ Qconstraint = {
 }
 
 labels = {
-    'G-H': ['Thwaites', 'PIG'],
-    'B-C': ['Lambert'],
-    'C-Cp': ['Denman'],
-    'Cp-D': ['Totten'],
-    'Jpp-K': ['Recovery'],
-    'J-Jpp': ['Rutford', 'Academy'],
+    'G-H': ['(a) Thwaites', '(b) PIG'],
+    'B-C': ['(c) Lambert'],
+    'C-Cp': ['(d) Denman'],
+    'Cp-D': ['(e) Totten'],
+    'Jpp-K': ['(f) Recovery'],
+    'J-Jpp': ['(g) Rutford', '(h) Academy'],
 }
 
+# Maximum distance away from Ehrenfeucht et al. (2025) 
+# channel locations to search
 dthreshold = 50e3
-# gl_xy = np.array([
-#     [-1.5905e6, -0.2536e6],
-#     [-1.5205e6, -0.4637e6],
-#     [0, 0],
-#     [2266.8e3, -999e3],
-#     [2.5321e6, -0.4105e6],
-#     [1.6820e6, 0.7106e6],
-#     [0, 0],
-#     [0, 0],
-
-# ])
-
-# meshes = [
-#     '../../issm/thwaites/data/geom/thwaites_mesh.npy',
-#     '../../issm/thwaites/data/geom/thwaites_mesh.npy',
-#     None,
-#     '../../issm/aurora/data/geom/mesh.npy',
-#     '../../issm/denman/data/geom/mesh.npy',
-#     '../../issm/amery/data/geom/amery_mesh.npy',
-#     None,
-#     None,
-# ]
-
-# N_files = [
-#     '../../issm/thwaites/train/train_N.npy',
-#     '../../issm/thwaites/train/train_N.npy',
-#     None,
-#     '../../issm/aurora/glads/N.npy',
-#     '../../issm/denman/glads/N.npy',
-#     '../../issm/amery/train/train_N.npy',
-#     None,
-#     None,
-# ]
-
-# # nsectors = len(Q_files)
-# nsectors = 1
 
 nsectors = len(basins)
 
@@ -122,8 +89,9 @@ ncols = 4
 # nrows = int(np.ceil(N/ncols))
 nrows = 2
 
+# Search for largest channel near each grounding line
 glnumber = 0
-fig,axs = plt.subplots(ncols=ncols, nrows=nrows, figsize=(10, 8),
+fig,axs = plt.subplots(ncols=ncols, nrows=nrows, figsize=(6, 4),
     sharey=False)
 constraint_discharge = np.zeros((N,1))
 modelled_discharge = np.zeros((N, d))
@@ -153,7 +121,7 @@ for i in range(len(basins)):
         # print(xi.shape)
         print(xi/1e3, yi/1e3)
         ax = axs.flat[glnumber]
-        ax.set_title(labels[basin][j])
+        ax.set_title(labels[basin][j], fontsize=fs)
         ax.hist(Qmax, edgecolor='k')
         ax.axvline(Qconstraint[basin][j], color='k', label='Literature mean')
 
@@ -161,6 +129,7 @@ for i in range(len(basins)):
         constraint_discharge[glnumber] = Qconstraint[basin][j]
         glnumber += 1
 
+# Find the simulation with best fit over all grounding lines
 Q_rel_error = (np.abs(modelled_discharge - constraint_discharge)/constraint_discharge)**2
 print('Q_rel_error:', Q_rel_error.shape)
 Q_sum_rel_error = np.mean(Q_rel_error, axis=0)
@@ -171,21 +140,27 @@ sim_index = np.argmin(Q_sum_rel_error)
 print('Sim index:', sim_index)
 print(Q_sum_rel_error[sim_index])
 
-
+# Plot discharge histogram and map
 for ax in axs[-1].flat:
-    ax.set_xlabel('Discharge (m$^3$ s$^{-1}$)')
+    ax.set_xlabel('Discharge (m$^3$ s$^{-1}$)', fontsize=fs)
 
 for ax in axs[:, 0]:
-    ax.set_ylabel('Count (n=100)')
+    ax.set_ylabel('Count (n=100)', fontsize=fs)
 
 for i in range(N):
     ax = axs.flat[i]
     ax.axvline(modelled_discharge[i, sim_index], color='r', label='Best-fit model')
+    ax.tick_params(labelsize=fs-1)
+    ax.grid()
 
-axs.flat[0].legend(loc='upper right', frameon=False)
+axs.flat[0].legend(loc='lower left', frameon=False, fontsize=fs-1,
+    bbox_to_anchor=(0,1.2, 1, 0.2), ncols=2)
 
-fig.tight_layout()
+fig.subplots_adjust(wspace=0.2, hspace=0.4, left=0.08, right=0.975,
+    bottom=0.125, top=0.85)
 fig.savefig('figures/gl_discharge.png', dpi=400)
+fig.savefig('../../manuscript/A01.pdf')
+fig.savefig('../../manuscript/A01.png', dpi=300)
 
 print('Constant discharge:')
 print(constraint_discharge.squeeze())

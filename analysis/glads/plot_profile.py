@@ -1,3 +1,8 @@
+"""
+Script to adjust hand-drawn flowline profiles to ensure profiles
+exactly reach the grounding line
+"""
+
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.tri import Triangulation

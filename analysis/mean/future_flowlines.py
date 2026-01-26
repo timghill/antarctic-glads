@@ -267,5 +267,5 @@ axs[-1,1].set_xlabel('Distance from present grounding line (km)', fontsize=fs)
 axs[0,0].legend(bbox_to_anchor=(0,1,1,0.2), loc='lower left', 
     frameon=False, ncols=3, fontsize=fs)
 fig.savefig('figures/future_profiles.png', dpi=400)
-fig.savefig('../../manuscript/f07.png', dpi=400)
-fig.savefig('../../manuscript/f07.pdf')
+fig.savefig('../../manuscript/C01.png', dpi=400)
+fig.savefig('../../manuscript/C01.pdf')

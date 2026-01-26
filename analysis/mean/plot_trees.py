@@ -100,3 +100,7 @@ for i in range(2):
     # fig.tight_layout()
     fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
     fig.savefig(f'trees/t_noscale_{i:03d}.png', dpi=600)
+
+    if i==0:
+        fig.savefig(f'../../manuscript/D01.png', dpi=300)
+        fig.savefig(f'../../manuscript/D01.pdf')
