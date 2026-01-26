@@ -1,5 +1,7 @@
 *.tar.gz
 
+data/
+
 issm/RUN/*
 *.npy
 *.tif
