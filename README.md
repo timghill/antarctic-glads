@@ -14,6 +14,7 @@ The project structure is:
     * `analysis/parameters_reduced/`: simplified RF including 4 features + parameters
 * `manuscript/`: final manuscript figures
 * `data/`: raw data (BedMachine, ice velocities, and other published datasets not reproduced here)
+* `examples/`: notebook showing how to read the trained random forest and make predictions
 
 Each directory has a README file to describe the contents.
 
