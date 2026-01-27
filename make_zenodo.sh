@@ -18,7 +18,7 @@ rm -rf .git
 
 # Copy GlaDS + ISSM outputs (~10 GB)
 # cp -rv $LIVE/issm $ARCH/issm
-rsync -av --exclude=slurm-*.out --exclude='status.*' $LIVE/issm $ARCH/issm/
+rsync -avI --exclude=slurm-*.out --exclude='status.*' $LIVE/issm $ARCH
 
 
 # Copy analysis features (~0.25 GB)
