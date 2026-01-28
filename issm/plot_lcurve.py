@@ -25,7 +25,8 @@ values = np.array([
     1e-8,
     1e-9,
     1e-9,
-    1e-8,
+    # 1e-8,
+    10**(-7.5),
 ])
 
 fig = plt.figure(figsize=(8, 3))
@@ -53,9 +54,10 @@ for i,basin in enumerate(basins):
                     markeredgecolor='k', markersize=6, color='k', linestyle='none')
         ax.loglog(Jr, Jv, marker='.', label=case_labels[j])
 
-        if case=='poc':
+        if case=='glads':
             for j in range(4, len(Jv), 2):
-                ax.text(Jr[j], Jv[j], r'$\alpha = {:.1e}$'.format(alpha[j]), rotation=30, fontsize=6)
+                exponent = int(np.log10(alpha[j]))
+                ax.text(1.05*Jr[j], 1.1*Jv[j], f'$\\alpha = 10^{{{exponent:d}}}$', rotation=30, fontsize=6)
         
     
     ax.grid()
@@ -76,5 +78,7 @@ axs[0].legend(bbox_to_anchor=(0,1.1,0.2,1), loc='lower left',
 for ax in axs:
     ax.tick_params(labelsize=8)
 
-fig.savefig('tmp.png', dpi=400)
+fig.savefig('lcurve.png', dpi=400)
+fig.savefig('../manuscript/B01.png', dpi=400)
+fig.savefig('../manuscript/B01.pdf')
 
