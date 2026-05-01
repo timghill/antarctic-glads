@@ -37,8 +37,8 @@ for p in range(N):
     N_glads = np.zeros((nv, npara), dtype=np.float32)
     N_glads[levelset>0,:] = np.load(f'data/pred_{basin}_N_glads.npy')/1e6
 
-    f_glads[f_glads>1] = 1
-    f_glads[f_glads<0] = 0
+    # f_glads[f_glads>1] = 1
+    # f_glads[f_glads<0] = 0
 
 
     interp = lambda z: interpolate.griddata((mesh['x'], mesh['y']), z, (xx, yy), method='nearest')
