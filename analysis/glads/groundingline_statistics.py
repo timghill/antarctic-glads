@@ -58,7 +58,7 @@ xyall = np.array(xyall)
 
 # Mean Q values from the literature. See Table A1 for sources
 Qconstraint = {
-    'G-H': np.array([92, 42.5]),
+    'G-H': np.array([92, 45.3]),
     'B-C': np.array([202]),
     'C-Cp': np.array([14.1]),
     'Cp-D': np.array([30.3]),
