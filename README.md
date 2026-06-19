@@ -1,6 +1,6 @@
 # Antarctic GlaDS emulation
 
-Tim Hill, 2025 (tim_hill_2@sfu.ca) | https://github.com/timghill/antarctic-glads
+Tim Hill, 2026 (tim_hill_2@sfu.ca) | https://github.com/timghill/antarctic-glads
 
 ## Description
 
@@ -9,6 +9,7 @@ The project structure is:
 * `utils/`: shared code for setting up experiments and analyzing outputs
 * `issm/`: individual directories for GlaDS-ISSM model runs, including stored GlaDS ensembles and ISSM solutions
 * `analysis/`: emulator fitting, evaluation, and all analysis
+    * `analysis/glads/`: analysis of the GlaDS ensemble
     * `analysis/mean/`: analysis for the mean of the perturbed-parameter ensemble
     * `analysis/parameters_full/`: RF including all features + parameters
     * `analysis/parameters_reduced/`: simplified RF including 4 features + parameters
@@ -51,7 +52,8 @@ Appendix figures:
 - A1: `analysis/groundingline_statistics.py`
 - B1: `issm/plot_lcurve.py`
 - C1: `analysis/mean/future_flowlines.py`
-- D1: `analysis/mean/plot_trees.py`
-- D2: `analysis/mean/compute_shap.py`
-- D3: `analysis/RF.py`
+- D1: `analysis/mean/plot_heatmap.py`
+- D2: `analysis/mean/plot_trees.py`
+- D3: `analysis/mean/compute_shap.py`
+- D4: `analysis/RF.py`
 
