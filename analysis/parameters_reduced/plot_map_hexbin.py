@@ -1,5 +1,7 @@
 import os
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 from matplotlib.tri import Triangulation
 from matplotlib.gridspec import GridSpec, GridSpecFromSubplotSpec
@@ -21,7 +23,9 @@ g = 9.81
 profile_basins = ['G-H', 'G-H', 'C-Cp', 'B-C', 'Cp-D']
 profile_numbers = [0, 1, 0, 0, 0]
 profile_labels = ['Thwaites', 'PIG', 'Denman', 'Lambert', 'Totten']
-alphabet = ['(a)', '(b)', '(d)', '(e)', '(c)', '(f)']
+alphabet = ['(a)', '(b)', '(c)', '(d)', '(e)', '(f)', '(g)', '(h)']
+
+focus_basins = ['B-C', 'Ep-F']
 
 bedmachine = '../../data/bedmachine/BedMachineAntarctica-v3.nc'
 
@@ -32,35 +36,65 @@ fs = 7
 
 def plot_error(basins, index=15):
 
-
+    # Set a stride length > 1 to approximately plot BM more quickly
+    # at continent-wide scale we don't need 5 km resolution
     dx = 16
     with nc.Dataset(bedmachine, 'r') as bm:
+        print('Reding bedmachine')
         mask = bm['mask'][::dx, ::dx].astype(int)
         x = bm['x'][::dx].astype(np.float32)
         y = bm['y'][::dx].astype(np.float32)
         bed = bm['bed'][::dx, ::dx].astype(np.float32)
         surf = bm['surface'][::dx, ::dx].astype(np.float32)
-
     bed[mask==0] = np.nan
     mask[surf>2000] = 2
     xx,yy = np.meshgrid(x,y)
+    print('done bedmachine')
 
     xmin = np.min(xx[~np.isnan(bed)])
     xmax = np.max(xx[~np.isnan(bed)])
     ymin = np.min(yy[~np.isnan(bed)])
     ymax = np.max(yy[~np.isnan(bed)])
 
-
-    fig = plt.figure(figsize=(7, 5))
+    print('Creating figures')
+    fig1 = plt.figure(figsize=(7, 3.5))
     nrows = 2
-    ncols = 3
-    gs = GridSpec(ncols=ncols, nrows=2*nrows,
-        hspace=0.1, wspace=0.15, left=0.05, bottom=0.0, right=0.95, top=0.925,
-        height_ratios=(3, 100, 3, 100),
-        width_ratios=(100, 100, 100),
+    ncols = 2
+    gs = GridSpec(ncols=ncols, nrows=2,
+        hspace=0.2, wspace=0.1, left=0.03, bottom=0.0, right=0.925, top=0.925,
+        height_ratios=(3, 100),
+        width_ratios=(100, 100),
     )
-    axs = np.array([[fig.add_subplot(gs[2*i+1,j], facecolor='none') for j in range(2)] for i in range(nrows)])
-    caxs = np.array([[fig.add_subplot(gs[2*i,j]) for j in range(2)] for i in range(nrows)])
+    # axs = np.array([[fig.add_subplot(gs[2*i+1,j], facecolor='none') for j in range(2)] for i in range(nrows)])
+    axs = np.array([
+        fig1.add_subplot(gs[1,0]),
+        fig1.add_subplot(gs[1,1]),
+    ])
+    caxs = np.array([fig1.add_subplot(gs[0,j]) for j in range(2)])
+
+    efig = plt.figure(figsize=(7,6))
+    egs = GridSpec(nrows=4, ncols=3,
+        hspace=0.15, wspace=0.1, left=0.025, bottom=0.025, right=0.975, top=0.92,
+        height_ratios=(3, 100, 3, 100),
+        width_ratios=(110, 90, 90),
+    )
+    eaxs = np.array([
+        [efig.add_subplot(egs[1,0])],
+        [efig.add_subplot(egs[3,0])],
+    ])
+    ecaxs = np.array([
+        [efig.add_subplot(egs[0,0])],
+        [efig.add_subplot(egs[2,0])],
+    ])
+
+    subgs1 = GridSpecFromSubplotSpec(2, 1, egs[:2,1],
+        hspace=0)
+
+    subgs2 = GridSpecFromSubplotSpec(2, 1, egs[2:4,1],
+        hspace=0)
+    faxs = np.array([
+        []
+    ])
 
     Y_glads = np.array([])
     Y_rf = np.array([])
@@ -68,6 +102,7 @@ def plot_error(basins, index=15):
     N_rf = np.array([])
     phi_glads = np.array([])
     phi_rf = np.array([])
+    print('Contouring bedmachine')
     for i,ax in enumerate(axs.flat):
         ax.contour(xx, yy, mask, levels=(0.5,2.5,), colors=('k','k'), linewidths=0.5)
         pc = ax.pcolormesh(xx, yy, bed, cmap=Zcmap, 
@@ -83,7 +118,26 @@ def plot_error(basins, index=15):
         ax.text(0, 1, alphabet[i], transform=ax.transAxes,
             fontweight='bold', fontsize=fs)
         ax.tick_params(labelsize=fs)
+    
+    for i,ax in enumerate(eaxs.flat):
+        ax.contour(xx, yy, mask, levels=(0.5,2.5,), colors=('k','k'), linewidths=0.5)
+        pc = ax.pcolormesh(xx, yy, bed, cmap=Zcmap, 
+            vmin=-2000, vmax=2000, alpha=Zalpha,
+            rasterized=True)
+        ax.set_aspect('equal')
 
+        ax.spines[['left', 'right', 'top', 'bottom']].set_visible(False)
+        ax.set_xticks([])
+        ax.set_yticks([])
+        ax.set_xlim([xmin, xmax])
+        ax.set_ylim([ymin, ymax])
+        ax.text(0, 1, alphabet[4*i], transform=ax.transAxes,
+            fontweight='bold', fontsize=fs)
+        ax.tick_params(labelsize=fs)
+    print('done contouring')
+
+    print('Plotting GlaDS pcolormesh')
+    focus_index = 0
     for basin in basins:
         levelset = np.load(f'../../issm/{basin}/data/geom/ocean_levelset.npy')
         mesh = np.load(f'../../issm/{basin}/data/geom/mesh.npy', allow_pickle=True)
@@ -114,35 +168,84 @@ def plot_error(basins, index=15):
         mtri = Triangulation(mesh['x'], mesh['y'], mesh['elements']-1)
 
 
-        pc0 = axs[0,0].tripcolor(mtri, yi_glads, vmin=0.75, vmax=1, cmap=cmocean.cm.dense, rasterized=True)
-        pc1 = axs[1,0].tripcolor(mtri, ni_glads/1e6, vmin=0, vmax=4, cmap=cmocean.cm.haline, rasterized=True)
+        pc0 = axs[0].tripcolor(mtri, yi_glads, vmin=0.75, vmax=1, cmap=cmocean.cm.dense, rasterized=True)
+        pc1 = axs[1].tripcolor(mtri, ni_glads/1e6, vmin=0, vmax=4, cmap=cmocean.cm.haline, rasterized=True)
 
-        pc2 = axs[0,1].tripcolor(mtri, (yi_rf - yi_glads), vmin=-0.1, vmax=0.1, cmap=cmocean.cm.balance, rasterized=True)
-        pc3 = axs[1,1].tripcolor(mtri, (ni_rf - ni_glads)/1e6, vmin=-1, vmax=1, cmap=cmocean.cm.balance, rasterized=True)
+        pc2 = eaxs[0,0].tripcolor(mtri, (yi_rf - yi_glads), vmin=-0.1, vmax=0.1, cmap=cmocean.cm.balance, rasterized=True)
+        pc3 = eaxs[1,0].tripcolor(mtri, (ni_rf - ni_glads)/1e6, vmin=-1, vmax=1, cmap=cmocean.cm.balance, rasterized=True)
 
         outline = np.load(f'../../data/ANT_Basins/basin_{basin}.npy')
         for ax in axs.flat:
             ax.plot(outline[:,0], outline[:,1], color='k', linestyle='solid', linewidth=1)
+        for ax in eaxs[:,0].flat:
+            ax.plot(outline[:,0], outline[:,1], color='k', linestyle='solid', linewidth=1)
+        
+        if basin in focus_basins:
+            subax = efig.add_subplot(subgs1[focus_index])
+            subax.tripcolor(mtri, (yi_rf - yi_glads), vmin=-0.1, vmax=0.1, cmap=cmocean.cm.balance, rasterized=True)
+            subax.set_xlim([mesh['x'].min(), mesh['x'].max()])
+            subax.set_ylim([mesh['y'].min(), mesh['y'].max()])
 
+            subNax = efig.add_subplot(subgs2[focus_index])
+            subNax.tripcolor(mtri, (ni_rf - ni_glads)/1e6, vmin=-1, vmax=1, cmap=cmocean.cm.balance, rasterized=True)
+            subNax.set_xlim([mesh['x'].min(), mesh['x'].max()])
+            subNax.set_ylim([mesh['y'].min(), mesh['y'].max()])
 
-    cb0 = fig.colorbar(pc0, cax=caxs[0,0], orientation='horizontal')
+            subax.text(0,1,alphabet[1+focus_index],va='top',
+                transform=subax.transAxes,fontsize=fs,fontweight='bold')
+            subNax.text(0,1,alphabet[5+focus_index],va='top',
+                transform=subNax.transAxes,fontsize=fs,fontweight='bold')
+
+            for subax in (subax,subNax):
+                subax.set_aspect('equal')
+                subax.spines[['left', 'right', 'top', 'bottom']].set_visible(False)
+                subax.set_xticks([])
+                subax.set_yticks([])
+                subax.plot(outline[:,0], outline[:,1], 
+                    color='k', linestyle='solid', linewidth=1)
+
+                xll = np.min(mesh['x'])
+                yll = np.min(mesh['y'])
+
+                rwidth = 250e3
+                xll -= 0.75*rwidth
+                scalebar = Rectangle((xll, yll), rwidth, 
+                    rwidth/10, facecolor='k', edgecolor='k', clip_on=False)
+                subax.add_patch(scalebar)
+                subax.text(xll + rwidth/2, yll+100e3, f'{rwidth//1000:.0f} km', ha='center', fontsize=fs)
+
+            focus_index += 1
+
+    print('done GlaDS pcolormesh')
+
+    cb0 = fig1.colorbar(pc0, cax=caxs[0], orientation='horizontal')
     cb0.set_label('Flotation fraction (-)', fontsize=fs)
-    cb1 = fig.colorbar(pc1, cax=caxs[1,0], orientation='horizontal')
+    cb1 = fig1.colorbar(pc1, cax=caxs[1], orientation='horizontal')
     cb1.set_label('Effective pressure (MPa)', fontsize=fs)
-    cb2 = fig.colorbar(pc2, cax=caxs[0,1], orientation='horizontal')
+    
+    cb2 = efig.colorbar(pc2, cax=ecaxs[0,0], orientation='horizontal')
     cb2.set_label(r'$\Delta$ Flotation fraction (-)', fontsize=fs)
     cb2.set_ticks([-0.1, -0.05, 0, 0.05, 0.1])
-    cb3 = fig.colorbar(pc3, cax=caxs[1,1], orientation='horizontal')
+    cb3 = efig.colorbar(pc3, cax=ecaxs[1,0], orientation='horizontal')
     cb3.set_label(r'$\Delta$ Effective pressure (MPa)', fontsize=fs)
 
     for cax in caxs.flat:
         cax.xaxis.set_label_position('top')
         cax.tick_params(labelsize=fs)
+    for cax in ecaxs.flat:
+        cax.xaxis.tick_top()
+        cax.xaxis.set_label_position('top')
+        cax.tick_params(labelsize=fs)
     
     scalebar = Rectangle((xmin, ymin), 1000e3, 100e3, facecolor='k', edgecolor='k')
-    axs[0,0].add_patch(scalebar)
-    axs[0,0].text(xmin + 500e3, ymin+200e3, '1000 km', ha='center', fontsize=fs)
+    axs[0].add_patch(scalebar)
+    axs[0].text(xmin + 500e3, ymin+200e3, '1000 km', ha='center', fontsize=fs)
 
+    scalebar = Rectangle((xmin, ymin+250e3), 1000e3, 100e3, facecolor='k', edgecolor='k')
+    eaxs[0,0].add_patch(scalebar)
+    eaxs[0,0].text(xmin + 500e3, ymin+250e3+200e3, '1000 km', ha='center', fontsize=fs)
+
+    print('Labelling basins and flowlines')
     dxytext = np.array([
         [-500e3, -400e3],
         [-750e3, 0],
@@ -176,13 +279,13 @@ def plot_error(basins, index=15):
         flowline = np.load(f'../../issm/{basin}/data/geom/flowline_{num:02d}.npy')
         ss,xx,yy = flowline
 
-        axs[1,0].plot(xx, yy, color='w', linewidth=1)
+        axs[1].plot(xx, yy, color='w', linewidth=1)
         tx = xx[0] + dxytext[p,0]
         ty = yy[0] + dxytext[p,1]
         
-        axs[1,0].text(tx, ty, profile_labels[p],
+        axs[1].text(tx, ty, profile_labels[p],
             ha=ha[p], va=va[p], fontsize=fs)
-        axs[1,0].plot((xx[0], tx), (yy[0], ty), color='k', linewidth=0.65)
+        axs[1].plot((xx[0], tx), (yy[0], ty), color='k', linewidth=0.65)
 
     ####################################################################3
     ## Label the basins in (a)
@@ -213,49 +316,56 @@ def plot_error(basins, index=15):
         tx = bx + dxytext[p][0]
         ty = by + dxytext[p][1]
         
-        axs[0,0].text(tx, ty, basin, fontsize=fs)
+        axs[0].text(tx, ty, basin, fontsize=fs)
 
-
-    
+    print('done text labels')
+    fig1.savefig('figures/glads_map.png', dpi=400)
+    efig.savefig('figures/pred_error.png', dpi=400)
+    # return 
+    print('Done pcolormesh plots')
     ####################################################################3
     ## Hexbin
-
-    gs1 = GridSpecFromSubplotSpec(3, 3, gs[1,2],
-        height_ratios=(10, 80, 10),
-        width_ratios=(20, 80, 5))
-    gs2 = GridSpecFromSubplotSpec(3, 3, gs[3,2],
-        height_ratios=(10, 80, 10),
-        width_ratios=(20, 80, 5))
+    print('Starting Hexbin plots')
+    pad = 5
+    gs1 = GridSpecFromSubplotSpec(3, 3, egs[1,-1],
+        height_ratios=(pad, 100-2*pad, pad),
+        width_ratios=(1.5*pad, 100-2*pad, 0.5*pad),
+        hspace=0, wspace=0)
+    gs2 = GridSpecFromSubplotSpec(3, 3, egs[3,-1],
+        height_ratios=(pad, 100-2*pad, pad),
+        width_ratios=(1.5*pad, 100-2*pad, 0.5*pad),
+        hspace=0, wspace=0)
     # cgs = GridSpecFromSubplotSpec(3, 1, gs[1:,-1],
     #     height_ratios=(25, 50, 25),
     # )
-    ax1 = fig.add_subplot(gs1[1,1])
-    ax2 = fig.add_subplot(gs2[1,1])
+    ax1 = efig.add_subplot(gs1[1,1])
+    ax2 = efig.add_subplot(gs2[1,1])
     # cax = fig.add_subplot(cgs[1:-1])
-    cax = fig.add_subplot(gs[0,-1])
+    cax = efig.add_subplot(egs[0,-1])
 
     fmin = 0.75
     ax1.set_xlim([fmin, 1])
     ax1.set_ylim([fmin, 1])
     ax1.set_aspect('equal')
-    hb = ax1.hexbin(Y_glads, Y_rf, cmap=cmocean.cm.rain, gridsize=100,
-        extent=(fmin, 1, fmin, 1), linewidths=(0.2,), vmin=0, vmax=3e4,
+    stride = 1 # For prototyping only; use stride=1 for production
+    hb = ax1.hexbin(Y_glads[::stride], Y_rf[::stride], cmap=cmocean.cm.rain, gridsize=100,
+        extent=(fmin, 1, fmin, 1), linewidths=(0.2,), vmin=0, vmax=3e4/stride,
         rasterized=True)
     ax1.grid()
     mask = np.logical_and(Y_glads>=0, Y_glads<=1)
     r2f = 1 - np.nanvar(Y_rf[mask] - Y_glads[mask])/np.nanvar(Y_glads[mask])
     print('r2f:', r2f)
     ax1.set_title(f'$R^2$ = {r2f:.3f}', fontsize=fs)
-    phi_bed = rhofw*g*bed
+    
     
     Nmin = 0
     Nmax = 5
     ax2.set_xlim([Nmin, Nmax])
     ax2.set_ylim([Nmin, Nmax])
     ax2.set_aspect('equal')
-    ax2.hexbin(N_glads/1e6, N_rf/1e6, cmap=cmocean.cm.rain,
+    ax2.hexbin(N_glads[::stride]/1e6, N_rf[::stride]/1e6, cmap=cmocean.cm.rain,
         gridsize=100, extent=(Nmin, Nmax, Nmin, Nmax), linewidths=(0.1,),
-        vmin=0, vmax=3e4, rasterized=True)
+        vmin=0, vmax=3e4/stride, rasterized=True)
     ax2.grid()
     r2N = 1 - np.nanvar(N_rf[mask] - N_glads[mask])/np.nanvar(N_glads[mask])
     print('r2N:', r2N)
@@ -267,26 +377,33 @@ def plot_error(basins, index=15):
     ax2.set_xlabel('GlaDS effective pressure (MPa)', fontsize=fs)
     ax2.set_ylabel('RF effective pressure (MPa)', fontsize=fs)
     
-    cbar = fig.colorbar(hb, cax=cax, 
+    cbar = efig.colorbar(hb, cax=cax, 
         shrink=0.65, orientation='horizontal')
-    cbar.set_label(label='Counts (N={:.3e})'.format(len(N_rf)), fontsize=fs)
-    # cax.xaxis.tick_top()
+    cbar.set_label(label='Counts (N={:,})'.format(len(N_rf)), fontsize=fs)
+    cax.xaxis.tick_top()
     cax.xaxis.set_label_position('top')
     cax.tick_params(labelsize=fs)
 
     for i,ax in enumerate((ax1, ax2)):
         ax.tick_params(labelsize=fs)
-        ax.text(1.15, 1, alphabet[i+4], transform=axs[i,-1].transAxes,
-            fontweight='bold', fontsize=fs)
+        ax.text(-0.1, 1.1, alphabet[4*i+3], transform=ax.transAxes,
+            fontweight='bold', fontsize=fs, ha='left', va='top')
 
     r2phi = 1 - np.nanvar(phi_rf - phi_glads)/np.nanvar(phi_glads)
     print('r2phi:', r2phi)
     r2phi = 1 - np.nanvar(phi_rf[mask] - phi_glads[mask])/np.nanvar(phi_glads[mask])
     print('r2phi:', r2phi)
 
-    fig.savefig('figures/continent_pred_error.png', dpi=400)
-    fig.savefig('../../manuscript/f01.png', dpi=400)
-    fig.savefig('../../manuscript/f01.pdf', dpi=400)
+    fig1.savefig('figures/glads_map.png', dpi=400)
+    # fig1.savefig('../../manuscript/f01.png', dpi=400)
+    # fig1.savefig('../../manusscript/f01.pdf', dpi=400)
+
+
+    efig.savefig('figures/pred_error.png', dpi=400)
+    # efig.savefig('../../manuscript/')
+    # fig.savefig('figures/continent_pred_error.png', dpi=400)
+    # fig.savefig('../../manuscript/f01.png', dpi=400)
+    # fig.savefig('../../manuscript/f01.pdf', dpi=400)
 
 if __name__=='__main__':
     basins = [
