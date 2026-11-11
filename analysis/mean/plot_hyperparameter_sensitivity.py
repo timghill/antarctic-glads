@@ -40,9 +40,13 @@ features_nothickness = np.array([0,1,3,4,5,6,7,8]).astype(int)
 
 # Sensitivity to particular training basin
 basin_sensitivity_R2 = np.load('data/basin_sensitivity_R2_N.npy')
+print('basin_sensitivity_R2:', basin_sensitivity_R2)
+print(basin_sensitivity_R2.shape)
+print('diag:', np.diag(basin_sensitivity_R2))
 
 # Sensitivity to number of basins
 number_basins_R2 = np.load('data/basin_sensitivity_factorial_R2_N.npy')
+print('number_basins_R2:', number_basins_R2.shape)
 
 fig,(ax1,ax11) = plt.subplots(2, 1, figsize=(3.2,5.5), sharex=False, height_ratios=(9, 4))
 axs = (ax1,ax11)
@@ -175,6 +179,13 @@ for iy in range(nbasins):
             color = 'k' if np.abs(deltar)<0.1 else 'w'
             ax2.text(x[ix], y[iy], '{:.2f}'.format(deltar), fontsize=fs-1,
                 ha='center', va='center')
+            
+        if iy==ix:
+            raw_R2 = number_basins_R2[-1][ix]
+            color='k'
+            T = ax2.text(x[ix], y[iy], f'({raw_R2:.2f})', fontsize=fs-1,
+                ha='center', va='center')
+            print('On diagonal', T)
 
 y = np.arange(2, nbasins+1)
 ax3.pcolormesh(x, y, number_basins_R2 - number_basins_R2[-1], vmin=-0.2, vmax=0.2, cmap=cmocean.cm.diff)
@@ -195,6 +206,11 @@ for iy in range(len(y)):
             deltar = (number_basins_R2 - number_basins_R2[-1])[iy,ix]
             color = 'k' if np.abs(deltar)<0.1 else 'w'
             ax3.text(x[ix], y[iy], '{:.2f}'.format(deltar), fontsize=fs-1,
+                ha='center', va='center', color=color)
+        else:
+            raw_R2 = number_basins_R2[-1][ix]
+            color = 'k'
+            ax3.text(x[ix], y[iy], f'({raw_R2:.2f})', fontsize=fs-1,
                 ha='center', va='center', color=color)
 
 cbar = fig.colorbar(Rpc, cax=cax, orientation='horizontal')
