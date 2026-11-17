@@ -3,7 +3,6 @@ from matplotlib import pyplot as plt
 from scipy import interpolate
 
 basins = ['G-H', 'G-H', 'C-Cp', 'B-C', 'Cp-D']
-future = 2050
 template = '{}_{:d}'
 linenumbers = [0, 1, 0, 0, 0]
 futureruns = [0, 1, 2, 3, 4]
@@ -28,13 +27,13 @@ for p in range(N):
         future = 2300
     basin = template.format(basins[p], future)
     present = basins[p]
-
+    print(basin)
     N_RF = np.load(f'data/pred_{basin}_N_rf.npy').mean(axis=1)
     N_RF_present = np.load(f'data/pred_{present}_N_rf.npy').mean(axis=1)
     N_glads_present = np.load(f'data/pred_{present}_N_glads.npy').mean(axis=1)
-    print(N_glads_present.shape)
+    # print(N_glads_present.shape)
     N_CV_present = np.load(f'data/CV_{present}_N_rf.npy').mean(axis=1)
-    print(N_CV_present.shape)
+    # print(N_CV_present.shape)
 
     f_RF = np.load(f'data/pred_{basin}_f_rf.npy').mean(axis=1)
     f_RF_present = np.load(f'data/pred_{present}_f_rf.npy').mean(axis=1)
@@ -81,7 +80,6 @@ for p in range(N):
 
     def diff_quantile(f1,f2,q):
         delta = np.zeros((len(levelfut), 100), dtype=np.float32)
-        print('delta:', delta.shape)
         y1 = np.zeros(delta.shape)
         y2 = np.zeros(delta.shape)
         y1[levelfut>0,:] = np.load(f1)
@@ -146,7 +144,7 @@ for p in range(N):
             alpha=0.25)
         ax.plot(ss[retreat_mask]/1e3, 
             (f_interp_glads_future - f_interp_glads_present)[retreat_mask], 
-            color=colors[1], label='GlaDS future - present', linestyle='solid')
+            color=colors[1], label=r'$N_{\rm{GlaDS}}$ future$-$present', linestyle='solid')
     # ax.plot(ss/1e3, f_interp_RF_present, color=colors[2], 
     #     label='RF present')
     ax.fill_between(ss[retreat_mask]/1e3,
@@ -154,7 +152,7 @@ for p in range(N):
         alpha=0.25)
     ax.plot(ss[retreat_mask]/1e3, 
         (f_interp_RF - f_interp_RF_present)[retreat_mask], 
-        color=colors[3], label='RF future - present', linestyle='solid')
+        color=colors[3], label=r'$N_{\rm{RF}}$ future$-$present', linestyle='solid')
     ax.set_ylim([-0.15, 0.185])
     ax.grid()
     ax.set_ylabel(r'$\Delta f_{\rm{w}}$ (-)', fontsize=fs, labelpad=0)
@@ -172,7 +170,7 @@ for p in range(N):
             alpha=0.25)
         ax.plot(ss[retreat_mask]/1e3, 
             (N_interp_glads_future - N_interp_glads_present)[retreat_mask]/1e6, 
-            color=colors[1], label='GlaDS future')
+            color=colors[1], label=r'$N_{\rm{GlaDS}}^{2050/2300} - N_{\rm{GlaDS}}^{2015}$')
     # ax.plot(ss/1e3, N_interp_RF_present/1e6, color=colors[2], 
     #     label='RF present')
     ax.fill_between(ss[retreat_mask]/1e3,
@@ -180,7 +178,7 @@ for p in range(N):
         alpha=0.25)
     ax.plot(ss[retreat_mask]/1e3, 
         (N_interp_RF - N_interp_RF_present)[retreat_mask]/1e6, 
-        color=colors[3], label='RF future')
+        color=colors[3], label=r'$N_{\rm{RF}}^{2050/2300} - N_{\rm{RF}}^{2015}$')
     ax.set_ylim([-2.5, 1])
     # ax.legend()
     ax.grid()
@@ -194,18 +192,24 @@ for p in range(N):
         normal = 1
         # for ax in [ax1, axs[p,2]]:
         ax = axs[p,2]
-        ax.plot(ss[retreat_mask]/1e3, u_interp_poc_present[retreat_mask], label=r'$N_{\rm{POC}}$ present', 
+        ax.plot(ss[retreat_mask]/1e3, u_interp_poc_present[retreat_mask], 
+            label=r'$C_{\rm{POC}}^{2015}$, $N_{\rm{POC}}^{2015}$', 
             color='gray', linestyle='dashed', alpha=alpha, linewidth=normal)
-        ax.plot(ss[retreat_mask]/1e3, u_interp_rf_present[retreat_mask], label=r'$N_{\rm{RF}}$ present', 
+        ax.plot(ss[retreat_mask]/1e3, u_interp_rf_present[retreat_mask], 
+            label=r'$C_{\rm{RF}}^{2015}$, $N_{\rm{RF}}^{2015}$', 
             color=colors[2], linestyle='solid', alpha=alpha, linewidth=normal)
-        ax.plot(ss[retreat_mask]/1e3, u_interp_glads_present[retreat_mask], label=r'$N_{\rm{GlaDS}}$ present', 
+        ax.plot(ss[retreat_mask]/1e3, u_interp_glads_present[retreat_mask], 
+            label=r'$C_{\rm{GlaDS}}^{2015}$, $N_{\rm{GlaDS}}^{2015}$', 
             color=colors[0], linestyle='solid', alpha=alpha, linewidth=normal)
-        ax.plot(ss[retreat_mask]/1e3, u_interp_poc_future[retreat_mask], label=r'$N_{\rm{POC}}$ future', 
+        ax.plot(ss[retreat_mask]/1e3, u_interp_poc_future[retreat_mask], 
+            label=r'$C_{\rm{POC}}^{2015}$, $N_{\rm{POC}}^{2050/2300}$', 
             color='dimgray', linestyle='dashed', alpha=alpha, linewidth=bold)
-        ax.plot(ss[retreat_mask]/1e3, u_interp_rf_future[retreat_mask], label=r'$N_{\rm{RF}}$ future', 
+        ax.plot(ss[retreat_mask]/1e3, u_interp_rf_future[retreat_mask], 
+            label=r'$C_{\rm{RF}}^{2015}$, $N_{\rm{RF}}^{2050/2300}$', 
             color=colors[3], linestyle='solid', alpha=alpha, linewidth=bold)
         if p in futureruns:
-            ax.plot(ss[retreat_mask]/1e3, u_interp_glads_future[retreat_mask], label=r'$N_{\rm{GlaDS}}$ future', 
+            ax.plot(ss[retreat_mask]/1e3, u_interp_glads_future[retreat_mask], 
+                label=r'$C_{\rm{GlaDS}}^{2015}$, $N_{\rm{GlaDS}}^{2050/2300}$', 
                 color=colors[1], linestyle='solid', alpha=alpha, linewidth=bold)
             # ax.set_ylim([0.75, 1])
             # ax.legend()
@@ -264,8 +268,8 @@ axs[0,2].legend(bbox_to_anchor=(0, 1, 1., 1.0), loc='lower center',
     frameon=False, ncols=2, fontsize=fs)
 # for ax in axs[-1]:
 axs[-1,1].set_xlabel('Distance from present grounding line (km)', fontsize=fs)
-axs[0,0].legend(bbox_to_anchor=(0,1,1,0.2), loc='lower left', 
-    frameon=False, ncols=3, fontsize=fs)
+axs[0,1].legend(bbox_to_anchor=(0,1,1,0.2), loc='lower left', 
+    frameon=False, ncols=1, fontsize=fs)
 fig.savefig('figures/future_profiles.png', dpi=400)
-fig.savefig('../../manuscript/f07.png', dpi=400)
-fig.savefig('../../manuscript/f07.pdf')
+fig.savefig('../../manuscript/f08.png', dpi=400)
+fig.savefig('../../manuscript/f08.pdf')

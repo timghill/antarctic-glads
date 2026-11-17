@@ -319,8 +319,6 @@ def plot_error(basins, index=15):
         axs[0].text(tx, ty, basin, fontsize=fs)
 
     print('done text labels')
-    fig1.savefig('figures/glads_map.png', dpi=400)
-    efig.savefig('figures/pred_error.png', dpi=400)
     # return 
     print('Done pcolormesh plots')
     ####################################################################3
@@ -395,12 +393,13 @@ def plot_error(basins, index=15):
     print('r2phi:', r2phi)
 
     fig1.savefig('figures/glads_map.png', dpi=400)
-    # fig1.savefig('../../manuscript/f01.png', dpi=400)
-    # fig1.savefig('../../manusscript/f01.pdf', dpi=400)
+    fig1.savefig('../../manuscript/f01.png', dpi=400)
+    fig1.savefig('../../manuscript/f01.pdf', dpi=400)
 
 
     efig.savefig('figures/pred_error.png', dpi=400)
-    # efig.savefig('../../manuscript/')
+    efig.savefig('../../manuscript/f05.png', dpi=400)
+    efig.savefig('../../manuscript/f05.pdf', dpi=400)
     # fig.savefig('figures/continent_pred_error.png', dpi=400)
     # fig.savefig('../../manuscript/f01.png', dpi=400)
     # fig.savefig('../../manuscript/f01.pdf', dpi=400)

@@ -92,7 +92,7 @@ for p in range(N):
     f_interp_CV = interpolate.griddata((mesh['x'], mesh['y']), f_CV, (xx, yy), method='nearest')
     f_interp_glads = interpolate.griddata((mesh['x'], mesh['y']), f_glads, (xx, yy), method='nearest')
 
-    print('f_interp_RF:', f_interp_RF)
+    # print('f_interp_RF:', f_interp_RF)
 
     if is_iceflow:
         method = 'linear'
@@ -113,9 +113,9 @@ for p in range(N):
     # fig,ax1 = plt.subplots()
     # for ax in [ax1, axs[p,1]]:
     ax = axs[p,1]
-    ax.plot(ss/1e3, N_interp_glads/1e6, color=colors[1], label='GlaDS')
-    ax.plot(ss/1e3, N_interp_RF/1e6, color=colors[3], label='RF', linestyle='solid')
-    ax.plot(ss/1e3, N_interp_CV/1e6, color=colors[2], label='CV', linestyle='solid')
+    ax.plot(ss/1e3, N_interp_glads/1e6, color=colors[1], label=r'$\bar{N}_{\rm{GlaDS}}^{2015}$')
+    ax.plot(ss/1e3, N_interp_RF/1e6, color=colors[3], label=r'$\bar{N}_{\rm{RF}}^{2015}$', linestyle='solid')
+    ax.plot(ss/1e3, N_interp_CV/1e6, color=colors[2], label=r'$\bar{N}_{\rm{CV}}^{2015}$', linestyle='solid')
     ax.set_ylim([0, 4])
     # ax.legend()
     ax.grid()
@@ -150,12 +150,12 @@ for p in range(N):
         ax = axs[p,2]
         ax.plot(ss/1e3, vv_interp, color='black', label='Observed', linewidth=1.5)
         # ax.plot(ss/1e3, u_interp_poc, label='C_poc, N_poc', color=colors[0], linestyle=linestyles[0])
-        ax.plot(ss/1e3, u_interp_glads_glads, label=r'$C_{\rm{GlaDS}}$, $N_{\rm{GlaDS}}$', color=colors[1], linestyle='solid', alpha=alpha, zorder=4, linewidth=1.25)
-        ax.plot(ss/1e3, u_interp_glads_rf, label=r'$C_{\rm{GlaDS}}$, $N_{\rm{RF}}$', color=colors[3], linestyle='dashed', alpha=alpha, zorder=5, linewidth=0.75)
-        ax.plot(ss/1e3, u_interp_glads_cv, label=r'$C_{\rm{GlaDS}}$, $N_{\rm{CV}}$', color=colors[2], linestyle='dashed', alpha=alpha, zorder=5, linewidth=0.75)
-        ax.plot(ss/1e3, u_interp_glads_poc, label=r'$C_{\rm{GlaDS}}$, $N_{\rm{POC}}$', color='dimgray', linestyle='dashed', alpha=alpha, zorder=5, linewidth=0.75)
+        ax.plot(ss/1e3, u_interp_glads_glads, label=r'$\bar{C}_{\rm{GlaDS}}^{2015}$, $\bar{N}_{\rm{GlaDS}}^{2015}$', color=colors[1], linestyle='solid', alpha=alpha, zorder=4, linewidth=1.25)
+        ax.plot(ss/1e3, u_interp_glads_rf, label=r'$\bar{C}_{\rm{GlaDS}}^{2015}$, $\bar{N}_{\rm{RF}}^{2015}$', color=colors[3], linestyle='dashed', alpha=alpha, zorder=5, linewidth=0.75)
+        ax.plot(ss/1e3, u_interp_glads_cv, label=r'$\bar{C}_{\rm{GlaDS}}^{2015}$, $\bar{N}_{\rm{CV}}^{2015}$', color=colors[2], linestyle='dashed', alpha=alpha, zorder=5, linewidth=0.75)
+        ax.plot(ss/1e3, u_interp_glads_poc, label=r'$\bar{C}_{\rm{GlaDS}}^{2015}$, $N_{\rm{POC}}^{2015}$', color='dimgray', linestyle='dashed', alpha=alpha, zorder=5, linewidth=0.75)
         # ax.plot(ss/1e3, u_interp_rf_glads, label='C_RF, N_glads', color=colors[1], linestyle=linestyles[2])
-        ax.plot(ss/1e3, u_interp_rf_rf, label=r'$C_{\rm{RF}}$, $N_{\rm{RF}}$', color=colors[3], linestyle='solid', alpha=alpha, zorder=4, linewidth=1)
+        ax.plot(ss/1e3, u_interp_rf_rf, label=r'$\bar{C}_{\rm{RF}}^{2015}$, $\bar{N}_{\rm{RF}}^{2015}$', color=colors[3], linestyle='solid', alpha=alpha, zorder=4, linewidth=1)
         # ax.plot(ss/1e3, u_interp_rf_poc, label='C_RF, N_poc', color=colors[0], linestyle=linestyles[2])
         # ax.set_ylim([0.75, 1])
         # ax.legend()
@@ -185,10 +185,10 @@ for p in range(N):
 
 axs[0,2].legend(bbox_to_anchor=(0, 1, 1., 1.0), loc='lower center', frameon=False, ncols=2, fontsize=fs)
 axs[-1,1].set_xlabel('Distance from grounding line (km)', fontsize=fs)
-axs[0,0].legend(bbox_to_anchor=(0,1,1,0.2), loc='lower left', frameon=False, ncols=3, fontsize=fs)
+axs[0,1].legend(bbox_to_anchor=(0,1,1,0.2), loc='lower left', frameon=False, ncols=1, fontsize=fs)
 fig2.savefig('figures/profiles.png', dpi=400)
-fig2.savefig('../../manuscript/f06.png', dpi=400)
-fig2.savefig('../../manuscript/f06.pdf')
+fig2.savefig('../../manuscript/f07.png', dpi=400)
+fig2.savefig('../../manuscript/f07.pdf')
 
 
 r2 = 1 - np.nanvar(np.array(u_rf) - np.array(u_glads))/np.nanvar(np.array(u_glads))

@@ -185,5 +185,5 @@ ax.text(0.85e6, -2.36e6, 'Cook', va='top', ha='center', fontsize=fs-1)
 ax.plot([0.85e6, 0.95e6], [-2.36e6, -2.0e6], color='k', linewidth=0.5)
 
 fig.savefig('figures/map_delta.png', dpi=400)
-fig.savefig('../../manuscript/f05.png', dpi=300)
-fig.savefig('../../manuscript/f05.pdf', dpi=300)
+fig.savefig('../../manuscript/f06.png', dpi=300)
+fig.savefig('../../manuscript/f06.pdf', dpi=300)
