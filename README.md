@@ -37,6 +37,8 @@ pip install -e .
 
 ## Reproducing analysis
 
+All manuscript figures can be reproduced from the script `manuscript/reproduce_figures.sh`. Note that you will need to download source data that are not distributed as part of this repository (BedMachine, etc.) for all figures to run.
+
 Main manuscript figures are made from the following scripts in `analysis/`:
 
  1. `parameters_reduced/plot_map_hexbin.py`
