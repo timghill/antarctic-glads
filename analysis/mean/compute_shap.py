@@ -90,8 +90,8 @@ def main(basins, features):
         fig.subplots_adjust(left=0, right=1, bottom=0.1, top=0.95, wspace=0.1)
         fig.savefig(f'figures/SHAP_{basin}.png', dpi=400)
         if basin=='G-H':
-            fig.savefig('../../manuscript/D02.png', dpi=400)
-            fig.savefig('../../manuscript/D02.pdf', dpi=400)
+            fig.savefig('../../manuscript/D03.png', dpi=400)
+            fig.savefig('../../manuscript/D03.pdf', dpi=400)
             
 
 if __name__=='__main__':

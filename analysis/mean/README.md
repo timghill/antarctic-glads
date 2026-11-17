@@ -4,9 +4,9 @@ To focus on spatial generalizability of the model, take the mean over all parame
 
 Manuscript figures:
 
-* 3 (`plot_hyperparameter_sensitivity.py`)
-* 4 (`plot_hyperparameter_sensitivity.py`)
-* 6 (`flowlines.py`)
+*  3 (`plot_hyperparameter_sensitivity.py`)
+*  4 (`plot_hyperparameter_sensitivity.py`)
+*  7 (`flowlines.py`)
 * C1 (`future_flowlines.py`)
 * D1 (`plot_trees.py`)
 * D2 (`compute_shap.py`)

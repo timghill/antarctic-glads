@@ -102,5 +102,5 @@ for i in range(2):
     fig.savefig(f'trees/t_noscale_{i:03d}.png', dpi=600)
 
     if i==0:
-        fig.savefig(f'../../manuscript/D01.png', dpi=300)
-        fig.savefig(f'../../manuscript/D01.pdf')
+        fig.savefig(f'../../manuscript/D02.png', dpi=300)
+        fig.savefig(f'../../manuscript/D02.pdf')

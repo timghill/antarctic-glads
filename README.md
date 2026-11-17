@@ -6,7 +6,7 @@ Tim Hill, 2026 (tim_hill_2@sfu.ca) | https://github.com/timghill/antarctic-glads
 
 The project structure is:
 
-* `utils/`: shared code for setting up experiments and analyzing outputs
+* `utils/`: shared code for setting up experiments and analyzing outputs (see `pyproject.toml`)
 * `issm/`: individual directories for GlaDS-ISSM model runs, including stored GlaDS ensembles and ISSM solutions
 * `analysis/`: emulator fitting, evaluation, and all analysis
     * `analysis/glads/`: analysis of the GlaDS ensemble
@@ -14,7 +14,7 @@ The project structure is:
     * `analysis/parameters_full/`: RF including all features + parameters
     * `analysis/parameters_reduced/`: simplified RF including 4 features + parameters
 * `manuscript/`: final manuscript figures
-* `data/`: raw data (BedMachine, ice velocities, and other published datasets not reproduced here)
+* `data/`: raw data (BedMachine, ice velocities, and other published datasets not reproduced here. Please download these from the appropriate sources)
 * `examples/`: notebook showing how to read the trained random forest and make predictions
 
 Each directory has a README file to describe the contents.
@@ -37,23 +37,24 @@ pip install -e .
 
 ## Reproducing analysis
 
-Main manuscript figures are made from the following scripts:
+Main manuscript figures are made from the following scripts in `analysis/`:
 
- 1. `parameters_reduced/plot_hexbin.py`
+ 1. `parameters_reduced/plot_map_hexbin.py`
  2. `parameters_full/plot_ensemble_spread.py`
  3. `mean/plot_hyperparameter_sensitivity.py`
  4. `mean/plot_hyperparameter_sensitivity.py`
- 5. `parameters_reduced/map_delta.py`
- 6. `mean/flowlines.py`
- 7. `parameters_reduced/future_flowlines.py`
+ 5. `parameters_reduced/plot_map_hexbin.py`
+ 6. `parameters_reduced/map_delta.py`
+ 7. `mean/flowlines.py`
+ 8. `parameters_reduced/future_flowlines.py`
 
-Appendix figures:
+Appendix figures (paths relative to `.`):
 
-- A1: `analysis/groundingline_statistics.py`
+- A1: `analysis/glads/groundingline_statistics.py`
 - B1: `issm/plot_lcurve.py`
 - C1: `analysis/mean/future_flowlines.py`
 - D1: `analysis/mean/plot_heatmap.py`
 - D2: `analysis/mean/plot_trees.py`
 - D3: `analysis/mean/compute_shap.py`
-- D4: `analysis/RF.py`
+- D4: `analysis/mean/plot_hyperparameter_sensitivity.py`
 

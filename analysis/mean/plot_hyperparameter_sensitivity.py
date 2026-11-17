@@ -264,5 +264,5 @@ ax.grid()
 
 fig.tight_layout()
 fig.savefig('figures/para_sensitivity_no_thickness.png', dpi=400)
-fig.savefig('../../manuscript/D03.png', dpi=400)
-fig.savefig('../../manuscript/D03.pdf')
+fig.savefig('../../manuscript/D04.png', dpi=400)
+fig.savefig('../../manuscript/D04.pdf')
